@@ -30,6 +30,7 @@ debug_typeid = []
 level = "warn"
 check-cfg = [
     'cfg(bootstrap)',
+    'cfg(target_os, values("nanvix"))',
     'cfg(no_fp_fmt_parse)',
     # core use #[path] imports to portable-simd `core_simd` crate
     # and to stdarch `core_arch` crate which messes-up with Cargo list
