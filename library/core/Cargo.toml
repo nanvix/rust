@@ -30,6 +30,7 @@ debug_typeid = []
 level = "warn"
 check-cfg = [
     'cfg(bootstrap)',
+    'cfg(target_os, values("nanvix"))',
     'cfg(no_fp_fmt_parse)',
     'cfg(stdarch_intel_sde)',
     # #[cfg(bootstrap)]
