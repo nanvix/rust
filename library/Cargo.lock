@@ -76,6 +76,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "config"
+version = "0.5.16"
+dependencies = [
+ "compiler_builtins",
+ "rustc-std-workspace-core",
+]
+
+[[package]]
 name = "core"
 version = "0.0.0"
 
@@ -98,6 +106,14 @@ dependencies = [
  "libc",
  "rustc-std-workspace-core",
  "windows-sys",
+]
+
+[[package]]
+name = "error"
+version = "0.5.16"
+dependencies = [
+ "compiler_builtins",
+ "rustc-std-workspace-core",
 ]
 
 [[package]]
@@ -341,6 +357,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 
 [[package]]
+name = "static_assert"
+version = "0.5.16"
+dependencies = [
+ "compiler_builtins",
+ "rustc-std-workspace-core",
+]
+
+[[package]]
 name = "std"
 version = "0.0.0"
 dependencies = [
@@ -364,6 +388,7 @@ dependencies = [
  "rand_xorshift",
  "rustc-demangle",
  "std_detect",
+ "sys",
  "unwind",
  "wasi",
  "windows-targets 0.0.0",
@@ -389,6 +414,17 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
+]
+
+[[package]]
+name = "sys"
+version = "0.5.16"
+dependencies = [
+ "compiler_builtins",
+ "config",
+ "error",
+ "rustc-std-workspace-core",
+ "static_assert",
 ]
 
 [[package]]

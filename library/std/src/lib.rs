@@ -454,6 +454,7 @@ extern crate unwind;
 #[doc(masked)]
 #[allow(unused_extern_crates)]
 #[cfg(all(
+    not(target_os = "nanvix"),
     not(all(windows, target_env = "msvc", not(target_vendor = "uwp"))),
     feature = "miniz_oxide"
 ))]
