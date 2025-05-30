@@ -1,0 +1,50 @@
+name: Build Nanvix Toolchain
+
+on: [push]
+
+env:
+  TOOLCHAIN_DIR: /tmp/toolchain
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+        with:
+          repository: nanvix/rust
+          ref: ${{ github.head_ref }}
+
+      - name: Create Toolchain Directory
+        run: |
+          mkdir -p ${TOOLCHAIN_DIR}/src
+
+      - name: Download WASI SDK
+        run: |
+          cd ${TOOLCHAIN_DIR}/src
+          WASI_OS=linux
+          WASI_ARCH=x86_64
+          WASI_VERSION=25
+          WASI_VERSION_FULL=${WASI_VERSION}.0
+          wget https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${WASI_VERSION}/wasi-sdk-${WASI_VERSION_FULL}-${WASI_ARCH}-${WASI_OS}.tar.gz
+          tar xvf wasi-sdk-${WASI_VERSION_FULL}-${WASI_ARCH}-${WASI_OS}.tar.gz
+          echo "WASI_SDK_PATH=$(pwd)/wasi-sdk-${WASI_VERSION_FULL}-${WASI_ARCH}-${WASI_OS}" >> $GITHUB_ENV
+
+      - name: Configure Build
+        run: |
+          ./configure \
+              --release-channel=nightly \
+              --disable-docs \
+              --disable-compiler-docs \
+              --enable-cargo-native-static \
+              --target=x86_64-unknown-linux-gnu,i686-unknown-nanvix,wasm32-wasip1 \
+              --set change-id=138986
+
+      - name: Build Toolchain
+        run: |
+          ./x build --incremental --target x86_64-unknown-linux-gnu,i686-unknown-nanvix,wasm32-wasip1
+
+      - name: Install Toolchain
+        run: |
+          ./x install --incremental --target x86_64-unknown-linux-gnu,i686-unknown-nanvix,wasm32-wasip1
