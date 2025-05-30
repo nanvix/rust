@@ -30,6 +30,11 @@ cfg_if::cfg_if! {
             mod uefi;
             pub use uefi::*;
         }
+    } else if #[cfg(target_os = "nanvix")] {
+        mod connection {
+            mod nanvix;
+            pub use nanvix::*;
+        }
     } else {
         mod connection {
             mod unsupported;
