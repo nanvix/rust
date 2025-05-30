@@ -32,6 +32,9 @@ mod is_terminal {
         } else if #[cfg(target_os = "hermit")] {
             mod hermit;
             pub use hermit::*;
+        } else if #[cfg(target_os = "nanvix")] {
+            mod nanvix;
+            pub use nanvix::*;
         } else {
             mod unsupported;
             pub use unsupported::*;
