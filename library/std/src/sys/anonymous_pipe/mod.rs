@@ -7,6 +7,9 @@ cfg_if::cfg_if! {
     } else if #[cfg(windows)] {
         mod windows;
         pub use windows::{AnonPipe, pipe};
+    } else if #[cfg(target_os = "nanvix")] {
+        mod nanvix;
+        pub use nanvix::{AnonPipe, pipe};
     } else {
         mod unsupported;
         pub use unsupported::{AnonPipe, pipe};
