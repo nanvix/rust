@@ -1,4 +1,5 @@
 #![deny(unsafe_op_in_unsafe_fn)]
+#![allow(dead_code)]
 
 pub mod args;
 mod common;
@@ -13,7 +14,6 @@ pub use common::*;
 use nvx;
 
 /// Converts an `ErrorCode` from Nanvix to a `std::io::ErrorKind`.
-#[allow(dead_code)] // TODO: Remove this when it is used.
 pub fn error_code_to_error_kind(error_code: ErrorCode) -> crate::io::ErrorKind {
     use crate::io::ErrorKind::*;
     match error_code {
