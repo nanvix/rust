@@ -1,7 +1,6 @@
 #![deny(unsafe_op_in_unsafe_fn)]
 
 pub mod args;
-#[deny(unsafe_op_in_unsafe_fn)]
 mod common;
 pub mod env;
 pub mod os;
