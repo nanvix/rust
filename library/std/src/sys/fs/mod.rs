@@ -21,6 +21,9 @@ cfg_if::cfg_if! {
     } else if #[cfg(target_os = "wasi")] {
         mod wasi;
         pub use wasi::*;
+    } else if #[cfg(target_os = "nanvix")] {
+        mod nanvix;
+        pub use nanvix::*;
     } else {
         mod unsupported;
         pub use unsupported::*;
