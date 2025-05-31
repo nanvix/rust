@@ -115,6 +115,6 @@ pub fn is_ebadf(_err: &io::Error) -> bool {
     true
 }
 
-pub fn panic_output() -> Option<Vec<u8>> {
-    None
+pub fn panic_output() -> Option<impl io::Write> {
+    Some(Stderr::new())
 }
