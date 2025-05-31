@@ -67,10 +67,9 @@ impl io::Write for Stdout {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         match debug(buf.as_ptr() as *const u8, buf.len()) {
             Ok(_) => Ok(buf.len()),
-            Err(error) => Err(io::Error::new(
-                io::ErrorKind::Other,
-                format!("write failed: {:?}", error),
-            )),
+            Err(error) => {
+                Err(io::Error::new(io::ErrorKind::Other, format!("write failed: {:?}", error)))
+            }
         }
     }
 
@@ -89,10 +88,9 @@ impl io::Write for Stdout {
     fn write_all(&mut self, buf: &[u8]) -> io::Result<()> {
         match debug(buf.as_ptr() as *const u8, buf.len()) {
             Ok(_) => Ok(()),
-            Err(error) => Err(io::Error::new(
-                io::ErrorKind::Other,
-                format!("write failed: {:?}", error),
-            )),
+            Err(error) => {
+                Err(io::Error::new(io::ErrorKind::Other, format!("write failed: {:?}", error)))
+            }
         }
     }
 
