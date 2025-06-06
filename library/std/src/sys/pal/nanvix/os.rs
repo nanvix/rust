@@ -1,10 +1,10 @@
-use ::syscall::safe::FileSystem;
+use ::syscall::safe::{FileSystem, FileSystemPath};
 
 use crate::error::Error as StdError;
 use crate::ffi::{OsStr, OsString};
 use crate::os::nanvix::prelude::*;
 use crate::path::{self, PathBuf};
-use crate::sys::{decode_error_code, unsupported};
+use crate::sys::{error_code_to_error_kind, unsupported};
 use crate::{fmt, io, iter, slice};
 
 const PATH_SEPARATOR: u8 = b':';
@@ -18,14 +18,24 @@ pub fn error_string(_errno: i32) -> String {
 }
 
 pub fn getcwd() -> io::Result<PathBuf> {
-    match FileSystem::getcwd() {
+    match FileSystem::get_current_directory() {
         Ok(path) => Ok(PathBuf::from(path.as_str())),
-        Err(error) => Err(io::Error::new(decode_error_code(error.code), error.reason)),
+        Err(error) => Err(io::Error::new(error_code_to_error_kind(error.code), error.reason)),
     }
 }
 
-pub fn chdir(_: &path::Path) -> io::Result<()> {
-    unsupported()
+pub fn chdir(p: &path::Path) -> io::Result<()> {
+    let p = p.to_str().ok_or_else(|| {
+        io::Error::new(io::ErrorKind::InvalidInput, "path contains invalid UTF-8")
+    })?;
+
+    let path = FileSystemPath::new(p)
+        .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))?;
+
+    match FileSystem::change_current_directory(&path) {
+        Ok(()) => Ok(()),
+        Err(error) => Err(io::Error::new(error_code_to_error_kind(error.code), error.reason)),
+    }
 }
 
 pub struct SplitPaths<'a> {

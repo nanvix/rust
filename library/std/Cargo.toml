@@ -31,17 +31,17 @@ std_detect = { path = "../stdarch/crates/std_detect", default-features = false, 
 rustc-demangle = { version = "0.1.24", features = ['rustc-dep-of-std'] }
 
 [target.'cfg(target_os = "nanvix")'.dependencies]
-nvx = { git = "https://github.com/nanvix/nanvix", rev = "5c6c682987205c774ea43eb4b0956993d9e51524", package = "nvx", default-features = false, features = [
+nvx = { git = "https://github.com/nanvix/nanvix", rev = "78ac8d744c963a668826801a312de04732071f70", package = "nvx", default-features = false, features = [
     'rustc-dep-of-std',
 ], public = true }
-sysalloc = { git = "https://github.com/nanvix/nanvix", rev = "5c6c682987205c774ea43eb4b0956993d9e51524", package = "sysalloc", default-features = false, features = [
+sysalloc = { git = "https://github.com/nanvix/nanvix", rev = "78ac8d744c963a668826801a312de04732071f70", package = "sysalloc", default-features = false, features = [
     'rustc-dep-of-std',
 ], public = true }
-sys = { git = "https://github.com/nanvix/nanvix", rev = "5c6c682987205c774ea43eb4b0956993d9e51524", package = "sys", default-features = false, features = [
+sys = { git = "https://github.com/nanvix/nanvix", rev = "78ac8d744c963a668826801a312de04732071f70", package = "sys", default-features = false, features = [
     "kcall",
     'rustc-dep-of-std',
 ], public = true }
-syscall = { git = "https://github.com/nanvix/nanvix", rev = "5c6c682987205c774ea43eb4b0956993d9e51524", package = "syscall", default-features = false, features = [
+syscall = { git = "https://github.com/nanvix/nanvix", rev = "78ac8d744c963a668826801a312de04732071f70", package = "syscall", default-features = false, features = [
     'syscall',
     'rustc-dep-of-std',
 ], public = true }
