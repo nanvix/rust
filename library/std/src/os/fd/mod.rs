@@ -13,7 +13,7 @@ mod raw;
 mod owned;
 
 // Implementations for `AsRawFd` etc. for network types.
-#[cfg(not(target_os = "trusty"))]
+#[cfg(all(not(target_os = "trusty"), not(target_os = "nanvix")))]
 mod net;
 
 #[cfg(test)]

@@ -21,7 +21,7 @@ compiler_builtins = "0.1.0"
 libc = { version = "0.2", default-features = false }
 
 [target.'cfg(target_os = "nanvix")'.dependencies]
-sys = { git = "https://github.com/nanvix/nanvix", rev = "5c6c682987205c774ea43eb4b0956993d9e51524", package = "sys", default-features = false, features = [
+sys = { path = "/home/ppenna/src/nanvix/nanvix/src/libs/sys", default-features = false, features = [
     "kcall",
     'rustc-dep-of-std',
 ] }

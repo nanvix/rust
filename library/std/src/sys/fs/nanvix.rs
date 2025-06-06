@@ -1,91 +1,130 @@
+use ::syscall::safe::dir::{RawDirectory, RawDirectoryEntry};
+use ::syscall::safe::{
+    self, FileSystemAttributes, FileSystemPath, FileSystemPermissions, RegularFileOffset,
+    RegularFileOpenFlags, RegularFileSeekWhence,
+};
+
 use crate::ffi::OsString;
 use crate::fmt;
 use crate::hash::{Hash, Hasher};
 use crate::io::{self, BorrowedCursor, IoSlice, IoSliceMut, SeekFrom};
+use crate::os::fd::{AsFd, AsRawFd, BorrowedFd, FromRawFd, IntoRawFd, RawFd};
 use crate::path::{Path, PathBuf};
+use crate::sys::fd::FileDesc;
+pub use crate::sys::fs::common::exists;
 use crate::sys::time::SystemTime;
-use crate::sys::unsupported;
+use crate::sys::{error_code_to_error_kind, unsupported};
+use crate::sys_common::{FromInner, IntoInner};
 
-pub struct File(!);
+pub struct File(FileDesc);
 
-pub struct FileAttr(!);
+pub struct FileAttr(FileSystemAttributes);
 
-pub struct ReadDir(!);
+pub struct ReadDir {
+    root: RawDirectory,
+}
 
-pub struct DirEntry(!);
+pub struct DirEntry {
+    dirent: RawDirectoryEntry,
+}
 
 #[derive(Clone, Debug)]
-pub struct OpenOptions {}
+pub struct OpenOptions {
+    read: bool,
+    write: bool,
+    append: bool,
+    truncate: bool,
+    create: bool,
+    create_new: bool,
+}
 
 #[derive(Copy, Clone, Debug, Default)]
-pub struct FileTimes {}
+pub struct FileTimes {
+    accessed: SystemTime,
+    modified: SystemTime,
+}
 
-pub struct FilePermissions(!);
+pub struct FilePermissions(safe::FileSystemPermissions);
 
-pub struct FileType(!);
+pub struct FileType(safe::FileType);
 
 #[derive(Debug)]
 pub struct DirBuilder {}
 
 impl FileAttr {
     pub fn size(&self) -> u64 {
-        self.0
+        let size: i64 = self.0.size().into();
+        size as u64
     }
 
     pub fn perm(&self) -> FilePermissions {
-        self.0
+        FilePermissions(self.0.permissions())
     }
 
     pub fn file_type(&self) -> FileType {
-        self.0
+        FileType(self.0.file_type())
     }
 
     pub fn modified(&self) -> io::Result<SystemTime> {
-        self.0
+        match self.0.modified() {
+            Ok(time) => Ok(SystemTime::from_time(time)),
+            Err(error) => Err(io::Error::new(error_code_to_error_kind(error.code), error.reason)),
+        }
     }
 
     pub fn accessed(&self) -> io::Result<SystemTime> {
-        self.0
+        match self.0.accessed() {
+            Ok(time) => Ok(SystemTime::from_time(time)),
+            Err(error) => Err(io::Error::new(error_code_to_error_kind(error.code), error.reason)),
+        }
     }
 
     pub fn created(&self) -> io::Result<SystemTime> {
-        self.0
+        match self.0.created() {
+            Ok(time) => Ok(SystemTime::from_time(time)),
+            Err(error) => Err(io::Error::new(error_code_to_error_kind(error.code), error.reason)),
+        }
     }
 }
 
 impl Clone for FileAttr {
     fn clone(&self) -> FileAttr {
-        self.0
+        FileAttr(self.0)
     }
 }
 
 impl FilePermissions {
     pub fn readonly(&self) -> bool {
-        self.0
+        self.0.user_can_write() || self.0.group_can_write() || self.0.others_can_write()
     }
 
-    pub fn set_readonly(&mut self, _readonly: bool) {
-        self.0
+    pub fn set_readonly(&mut self, readonly: bool) {
+        if readonly {
+            self.0 =
+                FileSystemPermissions::empty().user_read(true).group_read(true).others_read(true);
+        } else {
+            self.0 = self.0.user_write(false).group_write(false).others_write(false);
+        }
     }
 }
 
 impl Clone for FilePermissions {
     fn clone(&self) -> FilePermissions {
-        self.0
+        FilePermissions(self.0)
     }
 }
 
 impl PartialEq for FilePermissions {
-    fn eq(&self, _other: &FilePermissions) -> bool {
-        self.0
+    fn eq(&self, other: &FilePermissions) -> bool {
+        self.0 == other.0
     }
 }
 
 impl Eq for FilePermissions {}
 
 impl fmt::Debug for FilePermissions {
-    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.0
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Debug::fmt(&self.0, f)
     }
 }
 
@@ -96,49 +135,49 @@ impl FileTimes {
 
 impl FileType {
     pub fn is_dir(&self) -> bool {
-        self.0
+        self.0 == safe::FileType::Directory
     }
 
     pub fn is_file(&self) -> bool {
-        self.0
+        self.0 == safe::FileType::RegularFile
     }
 
     pub fn is_symlink(&self) -> bool {
-        self.0
+        self.0 == safe::FileType::SymbolicLink
     }
 }
 
 impl Clone for FileType {
     fn clone(&self) -> FileType {
-        self.0
+        FileType(self.0)
     }
 }
 
 impl Copy for FileType {}
 
 impl PartialEq for FileType {
-    fn eq(&self, _other: &FileType) -> bool {
-        self.0
+    fn eq(&self, other: &FileType) -> bool {
+        self.0 == other.0
     }
 }
 
 impl Eq for FileType {}
 
 impl Hash for FileType {
-    fn hash<H: Hasher>(&self, _h: &mut H) {
-        self.0
+    fn hash<H: Hasher>(&self, h: &mut H) {
+        self.0.hash(h);
     }
 }
 
 impl fmt::Debug for FileType {
-    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.0
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Debug::fmt(&self.0, f)
     }
 }
 
 impl fmt::Debug for ReadDir {
-    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.0
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Debug::fmt(&self.root, f)
     }
 }
 
@@ -146,132 +185,242 @@ impl Iterator for ReadDir {
     type Item = io::Result<DirEntry>;
 
     fn next(&mut self) -> Option<io::Result<DirEntry>> {
-        self.0
+        match safe::dir::readdir(&mut self.root) {
+            Ok(Some(raw_entry)) => Some(Ok(DirEntry { dirent: raw_entry })),
+            Ok(None) => None,
+            Err(error) => {
+                Some(Err(io::Error::new(error_code_to_error_kind(error.code), error.reason)))
+            }
+        }
     }
 }
 
 impl DirEntry {
     pub fn path(&self) -> PathBuf {
-        self.0
+        PathBuf::from(self.dirent.path().unwrap_or_else(|_error| "".to_string()))
     }
 
     pub fn file_name(&self) -> OsString {
-        self.0
+        let file_name = self.dirent.file_name().unwrap_or_else(|_error| "");
+        OsString::from(file_name)
     }
 
     pub fn metadata(&self) -> io::Result<FileAttr> {
-        self.0
+        let directory_name = FileSystemPath::new(&self.dirent.directory_name())
+            .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))?;
+        let file_name = self
+            .dirent
+            .file_name()
+            .map_err(|error| io::Error::new(io::ErrorKind::InvalidInput, error.reason))?;
+        let file_name = FileSystemPath::new(file_name)
+            .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))?;
+        let pathname = directory_name
+            .join(&file_name)
+            .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))?;
+        let attr = safe::lstat(&pathname)
+            .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))?;
+        Ok(FileAttr(attr))
     }
 
     pub fn file_type(&self) -> io::Result<FileType> {
-        self.0
+        let file_type = self.dirent.file_type();
+        Ok(FileType(file_type))
     }
 }
 
 impl OpenOptions {
     pub fn new() -> OpenOptions {
-        OpenOptions {}
+        OpenOptions {
+            read: false,
+            write: false,
+            append: false,
+            truncate: false,
+            create: false,
+            create_new: false,
+        }
     }
 
-    pub fn read(&mut self, _read: bool) {}
-    pub fn write(&mut self, _write: bool) {}
-    pub fn append(&mut self, _append: bool) {}
-    pub fn truncate(&mut self, _truncate: bool) {}
-    pub fn create(&mut self, _create: bool) {}
-    pub fn create_new(&mut self, _create_new: bool) {}
+    pub fn read(&mut self, read: bool) {
+        self.read = read;
+    }
+    pub fn write(&mut self, write: bool) {
+        self.write = write;
+    }
+    pub fn append(&mut self, append: bool) {
+        self.append = append;
+    }
+    pub fn truncate(&mut self, truncate: bool) {
+        self.truncate = truncate;
+    }
+    pub fn create(&mut self, create: bool) {
+        self.create = create;
+    }
+    pub fn create_new(&mut self, create_new: bool) {
+        self.create_new = create_new;
+    }
+
+    fn into_regular_file_open_flags(&self) -> RegularFileOpenFlags {
+        let oflags = if self.read && self.write {
+            RegularFileOpenFlags::read_write()
+        } else if self.write {
+            RegularFileOpenFlags::write_only()
+        } else {
+            RegularFileOpenFlags::read_only()
+        };
+
+        let oflags = if self.append { oflags.append() } else { oflags };
+        let oflags = if self.truncate { oflags.truncate() } else { oflags };
+        let oflags = if self.create { oflags.create() } else { oflags };
+        let oflags = if self.create_new { oflags.create().exclusive() } else { oflags };
+
+        oflags
+    }
 }
 
 impl File {
-    pub fn open(_path: &Path, _opts: &OpenOptions) -> io::Result<File> {
-        unsupported()
+    pub fn open(path: &Path, opts: &OpenOptions) -> io::Result<File> {
+        let path = path.to_str().ok_or_else(|| {
+            io::Error::new(io::ErrorKind::InvalidInput, "path contains invalid UTF-8")
+        })?;
+
+        let pathname = FileSystemPath::new(path)
+            .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))?;
+
+        let flags = opts.into_regular_file_open_flags();
+
+        let permissions = Some(
+            FileSystemPermissions::empty()
+                .user_read(true)
+                .user_write(true)
+                .group_read(true)
+                .group_write(true)
+                .others_read(true)
+                .others_write(true),
+        );
+
+        let rawfd = safe::open(&pathname, flags, permissions)
+            .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))?;
+
+        Ok(File(unsafe { FileDesc::from_raw_fd(rawfd) }))
     }
 
     pub fn file_attr(&self) -> io::Result<FileAttr> {
-        self.0
+        let rawfd = self.0.as_raw_fd();
+        let attr = safe::fstat(rawfd)
+            .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))?;
+
+        Ok(FileAttr(attr))
     }
 
     pub fn fsync(&self) -> io::Result<()> {
-        self.0
+        let rawfd = self.0.as_raw_fd();
+        safe::fsync(rawfd)
+            .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))
     }
 
     pub fn datasync(&self) -> io::Result<()> {
-        self.0
+        let rawfd = self.0.as_raw_fd();
+        safe::fdatasync(rawfd)
+            .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))
     }
 
     pub fn lock(&self) -> io::Result<()> {
-        self.0
+        unsupported()
     }
 
     pub fn lock_shared(&self) -> io::Result<()> {
-        self.0
+        unsupported()
     }
 
     pub fn try_lock(&self) -> io::Result<bool> {
-        self.0
+        unsupported()
     }
 
     pub fn try_lock_shared(&self) -> io::Result<bool> {
-        self.0
+        unsupported()
     }
 
     pub fn unlock(&self) -> io::Result<()> {
-        self.0
+        unsupported()
     }
 
     pub fn truncate(&self, _size: u64) -> io::Result<()> {
-        self.0
+        unsupported()
     }
 
-    pub fn read(&self, _buf: &mut [u8]) -> io::Result<usize> {
-        self.0
+    pub fn read(&self, buf: &mut [u8]) -> io::Result<usize> {
+        self.0.read(buf)
     }
 
-    pub fn read_vectored(&self, _bufs: &mut [IoSliceMut<'_>]) -> io::Result<usize> {
-        self.0
+    pub fn read_vectored(&self, bufs: &mut [IoSliceMut<'_>]) -> io::Result<usize> {
+        self.0.read_vectored(bufs)
     }
 
+    #[inline]
     pub fn is_read_vectored(&self) -> bool {
-        self.0
+        self.0.is_read_vectored()
     }
 
-    pub fn read_buf(&self, _cursor: BorrowedCursor<'_>) -> io::Result<()> {
-        self.0
+    pub fn read_buf(&self, cursor: BorrowedCursor<'_>) -> io::Result<()> {
+        self.0.read_buf(cursor)
     }
 
-    pub fn write(&self, _buf: &[u8]) -> io::Result<usize> {
-        self.0
+    pub fn write(&self, buf: &[u8]) -> io::Result<usize> {
+        self.0.write(buf)
     }
 
     pub fn write_vectored(&self, _bufs: &[IoSlice<'_>]) -> io::Result<usize> {
-        self.0
+        self.0.write_vectored(_bufs)
     }
 
     pub fn is_write_vectored(&self) -> bool {
-        self.0
+        self.0.is_write_vectored()
     }
 
     pub fn flush(&self) -> io::Result<()> {
-        self.0
+        Ok(())
     }
 
-    pub fn seek(&self, _pos: SeekFrom) -> io::Result<u64> {
-        self.0
+    pub fn seek(&self, pos: SeekFrom) -> io::Result<u64> {
+        let (whence, pos) = match pos {
+            // Casting to `i64` is fine, too large values will end up as
+            // negative which will cause an error in `lseek`.
+            SeekFrom::Start(off) => {
+                (RegularFileSeekWhence::Start, RegularFileOffset::from(off as i64))
+            }
+            SeekFrom::End(off) => (RegularFileSeekWhence::Current, RegularFileOffset::from(off)),
+            SeekFrom::Current(off) => (RegularFileSeekWhence::End, RegularFileOffset::from(off)),
+        };
+
+        let rawfd = self.0.as_raw_fd();
+
+        let offset = safe::lseek(rawfd, whence, pos)
+            .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))?;
+        let offset: i64 = offset.into();
+
+        Ok(offset as u64)
     }
 
     pub fn tell(&self) -> io::Result<u64> {
-        self.0
+        self.seek(SeekFrom::Current(0))
     }
 
     pub fn duplicate(&self) -> io::Result<File> {
-        self.0
+        self.0.duplicate().map(File)
     }
 
-    pub fn set_permissions(&self, _perm: FilePermissions) -> io::Result<()> {
-        self.0
+    pub fn set_permissions(&self, perm: FilePermissions) -> io::Result<()> {
+        let rawfd = self.0.as_raw_fd();
+
+        safe::fchmod(rawfd, perm.0)
+            .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))
     }
 
-    pub fn set_times(&self, _times: FileTimes) -> io::Result<()> {
-        self.0
+    pub fn set_times(&self, times: FileTimes) -> io::Result<()> {
+        let times = [times.accessed.t, times.modified.t];
+
+        safe::futimens(self.0.as_raw_fd(), &times)
+            .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))
     }
 }
 
@@ -280,31 +429,118 @@ impl DirBuilder {
         DirBuilder {}
     }
 
-    pub fn mkdir(&self, _p: &Path) -> io::Result<()> {
-        unsupported()
+    pub fn mkdir(&self, p: &Path) -> io::Result<()> {
+        let path = p.to_str().ok_or_else(|| {
+            io::Error::new(io::ErrorKind::InvalidInput, "path contains invalid UTF-8")
+        })?;
+
+        let pathname = FileSystemPath::new(path)
+            .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))?;
+
+        safe::mkdir(&pathname, FileSystemPermissions::empty())
+            .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))
     }
 }
 
-impl fmt::Debug for File {
-    fn fmt(&self, _f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl IntoInner<FileDesc> for File {
+    fn into_inner(self) -> FileDesc {
         self.0
     }
 }
 
-pub fn readdir(_p: &Path) -> io::Result<ReadDir> {
-    unsupported()
+impl FromInner<FileDesc> for File {
+    fn from_inner(file_desc: FileDesc) -> Self {
+        Self(file_desc)
+    }
 }
 
-pub fn unlink(_p: &Path) -> io::Result<()> {
-    unsupported()
+impl AsFd for File {
+    #[inline]
+    fn as_fd(&self) -> BorrowedFd<'_> {
+        self.0.as_fd()
+    }
 }
 
-pub fn rename(_old: &Path, _new: &Path) -> io::Result<()> {
-    unsupported()
+impl AsRawFd for File {
+    #[inline]
+    fn as_raw_fd(&self) -> RawFd {
+        self.0.as_raw_fd()
+    }
 }
 
-pub fn set_perm(_p: &Path, perm: FilePermissions) -> io::Result<()> {
-    match perm.0 {}
+impl IntoRawFd for File {
+    fn into_raw_fd(self) -> RawFd {
+        self.0.into_raw_fd()
+    }
+}
+
+impl FromRawFd for File {
+    unsafe fn from_raw_fd(raw_fd: RawFd) -> Self {
+        unsafe { Self(FromRawFd::from_raw_fd(raw_fd)) }
+    }
+}
+
+impl fmt::Debug for File {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Debug::fmt(&self.0, f)
+    }
+}
+
+pub fn readdir(p: &Path) -> io::Result<ReadDir> {
+    let path = p.to_str().ok_or_else(|| {
+        io::Error::new(io::ErrorKind::InvalidInput, "path contains invalid UTF-8")
+    })?;
+
+    let pathname = FileSystemPath::new(path)
+        .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))?;
+
+    let raw_dir = safe::dir::opendir(&pathname)
+        .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))?;
+
+    Ok(ReadDir { root: raw_dir })
+}
+
+pub fn unlink(p: &Path) -> io::Result<()> {
+    let path = p.to_str().ok_or_else(|| {
+        io::Error::new(io::ErrorKind::InvalidInput, "path contains invalid UTF-8")
+    })?;
+
+    let pathname = FileSystemPath::new(path)
+        .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))?;
+
+    safe::unlink(&pathname)
+        .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))
+}
+
+pub fn rename(old: &Path, new: &Path) -> io::Result<()> {
+    let old = old.to_str().ok_or_else(|| {
+        io::Error::new(io::ErrorKind::InvalidInput, "old path contains invalid UTF-8")
+    })?;
+
+    let new = new.to_str().ok_or_else(|| {
+        io::Error::new(io::ErrorKind::InvalidInput, "new path contains invalid UTF-8")
+    })?;
+
+    let old_path = FileSystemPath::new(old)
+        .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))?;
+
+    let new_path = FileSystemPath::new(new)
+        .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))?;
+
+    safe::rename(&old_path, &new_path)
+        .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))
+}
+
+pub fn set_perm(p: &Path, perm: FilePermissions) -> io::Result<()> {
+    let path = p.to_str().ok_or_else(|| {
+        io::Error::new(io::ErrorKind::InvalidInput, "path contains invalid UTF-8")
+    })?;
+
+    let pathname = FileSystemPath::new(path)
+        .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))?;
+
+    safe::chmod(&pathname, perm.0)
+        .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))
 }
 
 pub fn rmdir(_p: &Path) -> io::Result<()> {
@@ -315,28 +551,84 @@ pub fn remove_dir_all(_path: &Path) -> io::Result<()> {
     unsupported()
 }
 
-pub fn exists(_path: &Path) -> io::Result<bool> {
-    unsupported()
+pub fn readlink(p: &Path) -> io::Result<PathBuf> {
+    let path = p.to_str().ok_or_else(|| {
+        io::Error::new(io::ErrorKind::InvalidInput, "path contains invalid UTF-8")
+    })?;
+
+    let pathname = FileSystemPath::new(path)
+        .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))?;
+
+    let path = safe::readlink(&pathname)
+        .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))?;
+
+    Ok(PathBuf::from(path.as_str()))
 }
 
-pub fn readlink(_p: &Path) -> io::Result<PathBuf> {
-    unsupported()
+pub fn symlink(original: &Path, link: &Path) -> io::Result<()> {
+    let original = original.to_str().ok_or_else(|| {
+        io::Error::new(io::ErrorKind::InvalidInput, "original path contains invalid UTF-8")
+    })?;
+
+    let link = link.to_str().ok_or_else(|| {
+        io::Error::new(io::ErrorKind::InvalidInput, "link path contains invalid UTF-8")
+    })?;
+
+    let original_path = FileSystemPath::new(original)
+        .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))?;
+
+    let link_path = FileSystemPath::new(link)
+        .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))?;
+
+    safe::symlink(&original_path, &link_path)
+        .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))
 }
 
-pub fn symlink(_original: &Path, _link: &Path) -> io::Result<()> {
-    unsupported()
+pub fn link(src: &Path, dst: &Path) -> io::Result<()> {
+    let src = src.to_str().ok_or_else(|| {
+        io::Error::new(io::ErrorKind::InvalidInput, "source path contains invalid UTF-8")
+    })?;
+
+    let dst = dst.to_str().ok_or_else(|| {
+        io::Error::new(io::ErrorKind::InvalidInput, "destination path contains invalid UTF-8")
+    })?;
+
+    let src_path = FileSystemPath::new(src)
+        .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))?;
+
+    let dst_path = FileSystemPath::new(dst)
+        .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))?;
+
+    safe::link(&src_path, &dst_path)
+        .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))
 }
 
-pub fn link(_src: &Path, _dst: &Path) -> io::Result<()> {
-    unsupported()
+pub fn stat(p: &Path) -> io::Result<FileAttr> {
+    let path = p.to_str().ok_or_else(|| {
+        io::Error::new(io::ErrorKind::InvalidInput, "path contains invalid UTF-8")
+    })?;
+
+    let pathname = FileSystemPath::new(path)
+        .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))?;
+
+    let attr = safe::stat(&pathname)
+        .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))?;
+
+    Ok(FileAttr(attr))
 }
 
-pub fn stat(_p: &Path) -> io::Result<FileAttr> {
-    unsupported()
-}
+pub fn lstat(p: &Path) -> io::Result<FileAttr> {
+    let path = p.to_str().ok_or_else(|| {
+        io::Error::new(io::ErrorKind::InvalidInput, "path contains invalid UTF-8")
+    })?;
 
-pub fn lstat(_p: &Path) -> io::Result<FileAttr> {
-    unsupported()
+    let pathname = FileSystemPath::new(path)
+        .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))?;
+
+    let attr = safe::lstat(&pathname)
+        .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))?;
+
+    Ok(FileAttr(attr))
 }
 
 pub fn canonicalize(_p: &Path) -> io::Result<PathBuf> {

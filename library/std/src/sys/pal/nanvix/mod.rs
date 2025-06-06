@@ -5,6 +5,7 @@ pub mod args;
 mod common;
 pub mod env;
 pub mod os;
+pub mod fd;
 pub mod pipe;
 pub mod thread;
 pub mod time;
@@ -57,3 +58,5 @@ pub fn error_code_to_error_kind(error_code: ErrorCode) -> crate::io::ErrorKind {
         _ => Uncategorized,
     }
 }
+
+pub type RawOsError = ErrorCode;
