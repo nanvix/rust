@@ -12,3 +12,8 @@ pub mod prelude {
     #[stable(feature = "rust1", since = "1.0.0")]
     pub use super::ffi::{OsStrExt, OsStringExt};
 }
+
+#[stable(feature = "rust1", since = "1.0.0")]
+pub use ::sys;
+#[stable(feature = "rust1", since = "1.0.0")]
+pub use ::syscall;
