@@ -336,7 +336,7 @@ impl From<OwnedFd> for fs::File {
 }
 
 #[stable(feature = "io_safety", since = "1.63.0")]
-#[cfg(all(not(target_os = "trusty"), not(target_os = "nanvix")))]
+#[cfg(all(not(target_os = "trusty")))]
 impl AsFd for crate::net::TcpStream {
     #[inline]
     fn as_fd(&self) -> BorrowedFd<'_> {
@@ -345,7 +345,7 @@ impl AsFd for crate::net::TcpStream {
 }
 
 #[stable(feature = "io_safety", since = "1.63.0")]
-#[cfg(all(not(target_os = "trusty"), not(target_os = "nanvix")))]
+#[cfg(all(not(target_os = "trusty")))]
 impl From<crate::net::TcpStream> for OwnedFd {
     /// Takes ownership of a [`TcpStream`](crate::net::TcpStream)'s socket file descriptor.
     #[inline]
@@ -355,7 +355,7 @@ impl From<crate::net::TcpStream> for OwnedFd {
 }
 
 #[stable(feature = "io_safety", since = "1.63.0")]
-#[cfg(all(not(target_os = "trusty"), not(target_os = "nanvix")))]
+#[cfg(all(not(target_os = "trusty")))]
 impl From<OwnedFd> for crate::net::TcpStream {
     #[inline]
     fn from(owned_fd: OwnedFd) -> Self {
@@ -366,7 +366,7 @@ impl From<OwnedFd> for crate::net::TcpStream {
 }
 
 #[stable(feature = "io_safety", since = "1.63.0")]
-#[cfg(all(not(target_os = "trusty"), not(target_os = "nanvix")))]
+#[cfg(all(not(target_os = "trusty")))]
 impl AsFd for crate::net::TcpListener {
     #[inline]
     fn as_fd(&self) -> BorrowedFd<'_> {
@@ -375,7 +375,7 @@ impl AsFd for crate::net::TcpListener {
 }
 
 #[stable(feature = "io_safety", since = "1.63.0")]
-#[cfg(all(not(target_os = "trusty"), not(target_os = "nanvix")))]
+#[cfg(all(not(target_os = "trusty")))]
 impl From<crate::net::TcpListener> for OwnedFd {
     /// Takes ownership of a [`TcpListener`](crate::net::TcpListener)'s socket file descriptor.
     #[inline]
@@ -385,7 +385,7 @@ impl From<crate::net::TcpListener> for OwnedFd {
 }
 
 #[stable(feature = "io_safety", since = "1.63.0")]
-#[cfg(all(not(target_os = "trusty"), not(target_os = "nanvix")))]
+#[cfg(all(not(target_os = "trusty")))]
 impl From<OwnedFd> for crate::net::TcpListener {
     #[inline]
     fn from(owned_fd: OwnedFd) -> Self {
@@ -396,7 +396,7 @@ impl From<OwnedFd> for crate::net::TcpListener {
 }
 
 #[stable(feature = "io_safety", since = "1.63.0")]
-#[cfg(all(not(target_os = "trusty"), not(target_os = "nanvix")))]
+#[cfg(all(not(target_os = "trusty")))]
 impl AsFd for crate::net::UdpSocket {
     #[inline]
     fn as_fd(&self) -> BorrowedFd<'_> {
@@ -405,7 +405,7 @@ impl AsFd for crate::net::UdpSocket {
 }
 
 #[stable(feature = "io_safety", since = "1.63.0")]
-#[cfg(all(not(target_os = "trusty"), not(target_os = "nanvix")))]
+#[cfg(all(not(target_os = "trusty")))]
 impl From<crate::net::UdpSocket> for OwnedFd {
     /// Takes ownership of a [`UdpSocket`](crate::net::UdpSocket)'s file descriptor.
     #[inline]
@@ -415,7 +415,7 @@ impl From<crate::net::UdpSocket> for OwnedFd {
 }
 
 #[stable(feature = "io_safety", since = "1.63.0")]
-#[cfg(all(not(target_os = "trusty"), not(target_os = "nanvix")))]
+#[cfg(all(not(target_os = "trusty")))]
 impl From<OwnedFd> for crate::net::UdpSocket {
     #[inline]
     fn from(owned_fd: OwnedFd) -> Self {
