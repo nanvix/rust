@@ -1,4 +1,4 @@
-use ::sys::error::ErrorCode;
+use ::syscall::error::ErrorCode;
 use ::syscall::safe::{StandardError, StandardInput, StandardOutput};
 
 use crate::io::{self};

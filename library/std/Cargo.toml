@@ -31,16 +31,6 @@ std_detect = { path = "../stdarch/crates/std_detect", default-features = false, 
 rustc-demangle = { version = "0.1.24", features = ['rustc-dep-of-std'] }
 
 [target.'cfg(target_os = "nanvix")'.dependencies]
-nvx = { git = "https://github.com/nanvix/nanvix", branch = "nanvix/v0.8.x", package = "nvx", default-features = false, features = [
-    'rustc-dep-of-std',
-], public = true }
-sysalloc = { git = "https://github.com/nanvix/nanvix", branch = "nanvix/v0.8.x", package = "sysalloc", default-features = false, features = [
-    'rustc-dep-of-std',
-], public = true }
-sys = { git = "https://github.com/nanvix/nanvix", branch = "nanvix/v0.8.x", package = "sys", default-features = false, features = [
-    "kcall",
-    'rustc-dep-of-std',
-], public = true }
 syscall = { git = "https://github.com/nanvix/nanvix", branch = "nanvix/v0.8.x", package = "syscall", default-features = false, features = [
     'syscall',
     'rustc-dep-of-std',
