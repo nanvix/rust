@@ -155,6 +155,8 @@ pub mod ios;
 pub mod l4re;
 #[cfg(target_os = "macos")]
 pub mod macos;
+#[cfg(target_os = "nanvix")]
+pub mod nanvix;
 #[cfg(target_os = "netbsd")]
 pub mod netbsd;
 #[cfg(target_os = "nto")]

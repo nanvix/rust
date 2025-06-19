@@ -15,7 +15,7 @@ cfg_if::cfg_if! {
         mod fuchsia;
         pub use fuchsia::Mutex;
     } else if #[cfg(any(
-        target_family = "unix",
+        all(target_family = "unix", not(target_os = "nanvix")),
         target_os = "teeos",
     ))] {
         mod pthread;

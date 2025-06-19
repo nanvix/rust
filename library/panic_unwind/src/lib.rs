@@ -49,7 +49,7 @@ cfg_if::cfg_if! {
         target_os = "psp",
         target_os = "xous",
         target_os = "solid_asp3",
-        all(target_family = "unix", not(any(target_os = "espidf", target_os = "nuttx"))),
+        all(target_family = "unix", not(any(target_os = "nanvix", target_os = "espidf", target_os = "nuttx"))),
         all(target_vendor = "fortanix", target_env = "sgx"),
         target_family = "wasm",
     ))] {
@@ -69,6 +69,7 @@ cfg_if::cfg_if! {
         // - os=none ("bare metal" targets)
         // - os=uefi
         // - os=espidf
+        // - os=nanvix
         // - nvptx64-nvidia-cuda
         // - arch=avr
         #[path = "dummy.rs"]

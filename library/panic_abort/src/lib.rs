@@ -50,7 +50,7 @@ pub unsafe fn __rust_start_panic(_payload: &mut dyn PanicPayload) -> u32 {
     }
 
     cfg_if::cfg_if! {
-        if #[cfg(any(unix, target_os = "solid_asp3"))] {
+        if #[cfg(all(not(target_os = "nanvix"), any(unix, target_os = "solid_asp3")))] {
             unsafe fn abort() -> ! {
                 unsafe { libc::abort(); }
             }
@@ -107,6 +107,11 @@ pub unsafe fn __rust_start_panic(_payload: &mut dyn PanicPayload) -> u32 {
 
             unsafe fn abort() -> ! {
                 unsafe { teeos::TEE_Panic(1); }
+            }
+        } else if #[cfg(target_os = "nanvix")] {
+            unsafe fn abort() -> ! {
+                let _ = ::sys::kcall::pm::exit(1);
+                core::intrinsics::abort();
             }
         } else {
             unsafe fn abort() -> ! {

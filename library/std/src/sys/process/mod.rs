@@ -1,5 +1,5 @@
 cfg_if::cfg_if! {
-    if #[cfg(target_family = "unix")] {
+    if #[cfg(all(target_family = "unix", not(target_os = "nanvix")))] {
         mod unix;
         use unix as imp;
     } else if #[cfg(target_os = "windows")] {
@@ -8,6 +8,9 @@ cfg_if::cfg_if! {
     } else if #[cfg(target_os = "uefi")] {
         mod uefi;
         use uefi as imp;
+    } else if #[cfg(target_os = "nanvix")] {
+        mod nanvix;
+        use nanvix as imp;
     } else {
         mod unsupported;
         use unsupported as imp;

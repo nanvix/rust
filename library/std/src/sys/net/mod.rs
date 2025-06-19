@@ -1,6 +1,6 @@
 cfg_if::cfg_if! {
     if #[cfg(any(
-        all(target_family = "unix", not(target_os = "l4re")),
+        all(target_family = "unix", not(target_os = "l4re"), not(target_os = "nanvix")),
         target_os = "windows",
         target_os = "hermit",
         all(target_os = "wasi", target_env = "p2"),
@@ -29,6 +29,11 @@ cfg_if::cfg_if! {
         mod connection {
             mod uefi;
             pub use uefi::*;
+        }
+    } else if #[cfg(target_os = "nanvix")] {
+        mod connection {
+            mod nanvix;
+            pub use nanvix::*;
         }
     } else {
         mod connection {

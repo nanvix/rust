@@ -875,6 +875,7 @@ pub trait FileTypeExt {
 }
 
 #[stable(feature = "file_type_ext", since = "1.5.0")]
+#[cfg(not(target_os = "nanvix"))]
 impl FileTypeExt for fs::FileType {
     fn is_block_device(&self) -> bool {
         self.as_inner().is(libc::S_IFBLK)
@@ -887,6 +888,23 @@ impl FileTypeExt for fs::FileType {
     }
     fn is_socket(&self) -> bool {
         self.as_inner().is(libc::S_IFSOCK)
+    }
+}
+
+#[stable(feature = "file_type_ext", since = "1.5.0")]
+#[cfg(target_os = "nanvix")]
+impl FileTypeExt for fs::FileType {
+    fn is_block_device(&self) -> bool {
+        self.as_inner().is_block_device()
+    }
+    fn is_char_device(&self) -> bool {
+        self.as_inner().is_char_device()
+    }
+    fn is_fifo(&self) -> bool {
+        self.as_inner().is_fifo()
+    }
+    fn is_socket(&self) -> bool {
+        self.as_inner().is_socket()
     }
 }
 

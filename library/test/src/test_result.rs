@@ -1,5 +1,5 @@
 use std::any::Any;
-#[cfg(unix)]
+#[cfg(all(unix, not(target_os = "nanvix")))]
 use std::os::unix::process::ExitStatusExt;
 use std::process::ExitStatus;
 
@@ -103,7 +103,7 @@ pub(crate) fn get_result_from_exit_code(
         Some(TR_OK) => TestResult::TrOk,
         #[cfg(windows)]
         Some(STATUS_FAIL_FAST_EXCEPTION) => TestResult::TrFailed,
-        #[cfg(unix)]
+        #[cfg(all(unix, not(target_os = "nanvix")))]
         None => match status.signal() {
             Some(libc::SIGABRT) => TestResult::TrFailed,
             Some(signal) => {
@@ -111,6 +111,8 @@ pub(crate) fn get_result_from_exit_code(
             }
             None => unreachable!("status.code() returned None but status.signal() was None"),
         },
+        #[cfg(target_os = "nanvix")]
+        None => unreachable!("tests as not supported"),
         // Upon an abort, Fuchsia returns the status code ZX_TASK_RETCODE_EXCEPTION_KILL.
         #[cfg(target_os = "fuchsia")]
         Some(ZX_TASK_RETCODE_EXCEPTION_KILL) => TestResult::TrFailed,

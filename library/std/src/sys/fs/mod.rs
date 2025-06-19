@@ -3,7 +3,7 @@
 pub mod common;
 
 cfg_if::cfg_if! {
-    if #[cfg(target_family = "unix")] {
+    if #[cfg(all(target_family = "unix", not(target_os = "nanvix")))] {
         mod unix;
         pub use unix::*;
     } else if #[cfg(target_os = "windows")] {
@@ -21,6 +21,9 @@ cfg_if::cfg_if! {
     } else if #[cfg(target_os = "wasi")] {
         mod wasi;
         pub use wasi::*;
+    } else if #[cfg(target_os = "nanvix")] {
+        mod nanvix;
+        pub use nanvix::*;
     } else {
         mod unsupported;
         pub use unsupported::*;

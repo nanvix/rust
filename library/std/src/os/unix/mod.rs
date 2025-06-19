@@ -67,6 +67,8 @@ mod platform {
     pub use crate::os::l4re::*;
     #[cfg(target_os = "linux")]
     pub use crate::os::linux::*;
+    #[cfg(target_os = "nanvix")]
+    pub use crate::os::nanvix::*;
     #[cfg(target_os = "netbsd")]
     pub use crate::os::netbsd::*;
     #[cfg(target_os = "nto")]
@@ -90,9 +92,20 @@ mod platform {
 pub mod ffi;
 pub mod fs;
 pub mod io;
+#[cfg(not(target_os = "nanvix"))]
+#[path = "net/mod.rs"]
 pub mod net;
+#[cfg(target_os = "nanvix")]
+#[path = "nanvix/net/mod.rs"]
+pub mod net;
+#[cfg(not(target_os = "nanvix"))]
 pub mod process;
+#[cfg(target_os = "nanvix")]
+#[path = "nanvix/process.rs"]
+pub mod process;
+#[cfg(not(target_os = "nanvix"))]
 pub mod raw;
+#[cfg(not(target_os = "nanvix"))]
 pub mod thread;
 
 /// A prelude for conveniently writing platform-specific code.
@@ -120,5 +133,6 @@ pub mod prelude {
     pub use super::process::{CommandExt, ExitStatusExt};
     #[doc(no_inline)]
     #[stable(feature = "rust1", since = "1.0.0")]
+    #[cfg(not(target_os = "nanvix"))]
     pub use super::thread::JoinHandleExt;
 }

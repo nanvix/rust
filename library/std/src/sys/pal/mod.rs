@@ -25,7 +25,7 @@
 pub mod common;
 
 cfg_if::cfg_if! {
-    if #[cfg(unix)] {
+    if #[cfg(all(not(target_os = "nanvix"), unix))] {
         mod unix;
         pub use self::unix::*;
     } else if #[cfg(windows)] {
@@ -64,6 +64,9 @@ cfg_if::cfg_if! {
     } else if #[cfg(target_os = "zkvm")] {
         mod zkvm;
         pub use self::zkvm::*;
+    } else if #[cfg(target_os = "nanvix")] {
+        mod nanvix;
+        pub use self::nanvix::*;
     } else {
         mod unsupported;
         pub use self::unsupported::*;

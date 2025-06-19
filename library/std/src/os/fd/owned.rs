@@ -12,9 +12,12 @@ use crate::mem::ManuallyDrop;
     target_arch = "wasm32",
     target_env = "sgx",
     target_os = "hermit",
-    target_os = "trusty"
+    target_os = "trusty",
+    target_os = "nanvix",
 )))]
 use crate::sys::cvt;
+#[cfg(target_os = "nanvix")]
+use crate::sys::error_code_to_error_kind;
 #[cfg(not(target_os = "trusty"))]
 use crate::sys_common::{AsInner, FromInner, IntoInner};
 use crate::{fmt, io};
@@ -101,7 +104,7 @@ impl BorrowedFd<'_> {
         // We want to atomically duplicate this file descriptor and set the
         // CLOEXEC flag, and currently that's done via F_DUPFD_CLOEXEC. This
         // is a POSIX flag that was added to Linux in 2.6.24.
-        #[cfg(not(any(target_os = "espidf", target_os = "vita")))]
+        #[cfg(not(any(target_os = "espidf", target_os = "vita", target_os = "nanvix")))]
         let cmd = libc::F_DUPFD_CLOEXEC;
 
         // For ESP-IDF, F_DUPFD is used instead, because the CLOEXEC semantics
@@ -112,8 +115,20 @@ impl BorrowedFd<'_> {
         let cmd = libc::F_DUPFD;
 
         // Avoid using file descriptors below 3 as they are used for stdio
-        let fd = cvt(unsafe { libc::fcntl(self.as_raw_fd(), cmd, 3) })?;
-        Ok(unsafe { OwnedFd::from_raw_fd(fd) })
+        #[cfg(not(target_os = "nanvix"))]
+        {
+            let fd = cvt(unsafe { libc::fcntl(self.as_raw_fd(), cmd, 3) })?;
+            Ok(unsafe { OwnedFd::from_raw_fd(fd) })
+        }
+        #[cfg(target_os = "nanvix")]
+        {
+            let fd = self.as_raw_fd();
+            let cmd = ::syscall::safe::FileControlRequest::DuplicateWithCloseOnExec(3);
+            let fd = ::syscall::safe::fcntl(fd, cmd).map_err(|error| {
+                io::Error::new(error_code_to_error_kind(error.code), error.reason)
+            })?;
+            Ok(unsafe { OwnedFd::from_raw_fd(fd) })
+        }
     }
 
     /// Creates a new `OwnedFd` instance that shares the same underlying file
@@ -170,6 +185,7 @@ impl FromRawFd for OwnedFd {
 impl Drop for OwnedFd {
     #[inline]
     fn drop(&mut self) {
+        #[cfg(not(target_os = "nanvix"))]
         unsafe {
             // Note that errors are ignored when closing a file descriptor. According to POSIX 2024,
             // we can and indeed should retry `close` on `EINTR`
@@ -192,6 +208,8 @@ impl Drop for OwnedFd {
             #[cfg(target_os = "hermit")]
             let _ = hermit_abi::close(self.fd.as_inner());
         }
+        #[cfg(target_os = "nanvix")]
+        let _ = ::syscall::safe::close(self.fd.as_inner());
     }
 }
 
@@ -506,7 +524,7 @@ impl<'a> AsFd for io::StderrLock<'a> {
 }
 
 #[stable(feature = "anonymous_pipe", since = "1.87.0")]
-#[cfg(not(target_os = "trusty"))]
+#[cfg(all(not(target_os = "trusty"), not(target_os = "nanvix")))]
 impl AsFd for io::PipeReader {
     fn as_fd(&self) -> BorrowedFd<'_> {
         self.0.as_fd()
@@ -514,7 +532,7 @@ impl AsFd for io::PipeReader {
 }
 
 #[stable(feature = "anonymous_pipe", since = "1.87.0")]
-#[cfg(not(target_os = "trusty"))]
+#[cfg(all(not(target_os = "trusty"), not(target_os = "nanvix")))]
 impl From<io::PipeReader> for OwnedFd {
     fn from(pipe: io::PipeReader) -> Self {
         pipe.0.into_inner()
@@ -522,7 +540,7 @@ impl From<io::PipeReader> for OwnedFd {
 }
 
 #[stable(feature = "anonymous_pipe", since = "1.87.0")]
-#[cfg(not(target_os = "trusty"))]
+#[cfg(all(not(target_os = "trusty"), not(target_os = "nanvix")))]
 impl AsFd for io::PipeWriter {
     fn as_fd(&self) -> BorrowedFd<'_> {
         self.0.as_fd()
@@ -530,7 +548,7 @@ impl AsFd for io::PipeWriter {
 }
 
 #[stable(feature = "anonymous_pipe", since = "1.87.0")]
-#[cfg(not(target_os = "trusty"))]
+#[cfg(all(not(target_os = "trusty"), not(target_os = "nanvix")))]
 impl From<io::PipeWriter> for OwnedFd {
     fn from(pipe: io::PipeWriter) -> Self {
         pipe.0.into_inner()
@@ -538,7 +556,7 @@ impl From<io::PipeWriter> for OwnedFd {
 }
 
 #[stable(feature = "anonymous_pipe", since = "1.87.0")]
-#[cfg(not(target_os = "trusty"))]
+#[cfg(all(not(target_os = "trusty"), not(target_os = "nanvix")))]
 impl From<OwnedFd> for io::PipeReader {
     fn from(owned_fd: OwnedFd) -> Self {
         Self(FromInner::from_inner(owned_fd))
@@ -546,7 +564,7 @@ impl From<OwnedFd> for io::PipeReader {
 }
 
 #[stable(feature = "anonymous_pipe", since = "1.87.0")]
-#[cfg(not(target_os = "trusty"))]
+#[cfg(all(not(target_os = "trusty"), not(target_os = "nanvix")))]
 impl From<OwnedFd> for io::PipeWriter {
     fn from(owned_fd: OwnedFd) -> Self {
         Self(FromInner::from_inner(owned_fd))

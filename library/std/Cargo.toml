@@ -30,11 +30,27 @@ std_detect = { path = "../stdarch/crates/std_detect", default-features = false, 
 # Dependencies of the `backtrace` crate
 rustc-demangle = { version = "0.1.24", features = ['rustc-dep-of-std'] }
 
-[target.'cfg(not(all(windows, target_env = "msvc", not(target_vendor = "uwp"))))'.dependencies]
+[target.'cfg(target_os = "nanvix")'.dependencies]
+nvx = { git = "https://github.com/nanvix/nanvix", branch = "nanvix/v0.8.x", package = "nvx", default-features = false, features = [
+    'rustc-dep-of-std',
+], public = true }
+sysalloc = { git = "https://github.com/nanvix/nanvix", branch = "nanvix/v0.8.x", package = "sysalloc", default-features = false, features = [
+    'rustc-dep-of-std',
+], public = true }
+sys = { git = "https://github.com/nanvix/nanvix", branch = "nanvix/v0.8.x", package = "sys", default-features = false, features = [
+    "kcall",
+    'rustc-dep-of-std',
+], public = true }
+syscall = { git = "https://github.com/nanvix/nanvix", branch = "nanvix/v0.8.x", package = "syscall", default-features = false, features = [
+    'syscall',
+    'rustc-dep-of-std',
+], public = true }
+
+[target.'cfg(all(not(target_os = "nanvix"), not(all(windows, target_env = "msvc", not(target_vendor = "uwp")))))'.dependencies]
 miniz_oxide = { version = "0.8.0", optional = true, default-features = false }
 addr2line = { version = "0.24.0", optional = true, default-features = false }
 
-[target.'cfg(not(all(windows, target_env = "msvc")))'.dependencies]
+[target.'cfg(all(not(target_os = "nanvix"), not(all(windows, target_env = "msvc"))))'.dependencies]
 libc = { version = "0.2.171", default-features = false, features = [
     'rustc-dep-of-std',
 ], public = true }
@@ -159,6 +175,7 @@ test = true
 level = "warn"
 check-cfg = [
     'cfg(bootstrap)',
+    'cfg(target_os, values("nanvix"))',
     # std use #[path] imports to portable-simd `std_float` crate
     # and to the `backtrace` crate which messes-up with Cargo list
     # of declared features, we therefor expect any feature cfg

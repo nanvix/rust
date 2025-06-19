@@ -440,8 +440,12 @@ extern crate alloc as alloc_crate;
 // so include it here even if it's unused.
 #[doc(masked)]
 #[allow(unused_extern_crates)]
-#[cfg(not(all(windows, target_env = "msvc")))]
+#[cfg(all(not(target_os = "nanvix"), not(all(windows, target_env = "msvc"))))]
 extern crate libc;
+
+#[cfg(target_os = "nanvix")]
+#[stable(feature = "rust1", since = "1.0.0")]
+pub extern crate syscall;
 
 // We always need an unwinder currently for backtraces
 #[doc(masked)]
@@ -454,6 +458,7 @@ extern crate unwind;
 #[doc(masked)]
 #[allow(unused_extern_crates)]
 #[cfg(all(
+    not(target_os = "nanvix"),
     not(all(windows, target_env = "msvc", not(target_vendor = "uwp"))),
     feature = "miniz_oxide"
 ))]

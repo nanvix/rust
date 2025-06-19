@@ -12,7 +12,7 @@
 #![deny(unsafe_op_in_unsafe_fn)]
 
 // Force libc to be included even if unused. This is required by many platforms.
-#[cfg(not(all(windows, target_env = "msvc")))]
+#[cfg(all(not(target_os = "nanvix"), not(all(windows, target_env = "msvc"))))]
 extern crate libc as _;
 
 cfg_if::cfg_if! {
@@ -23,6 +23,7 @@ cfg_if::cfg_if! {
         target_os = "none",
         target_os = "espidf",
         target_os = "nuttx",
+        target_os = "nanvix",
     ))] {
         // These "unix" family members do not have unwinder.
     } else if #[cfg(any(

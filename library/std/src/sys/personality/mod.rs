@@ -31,7 +31,7 @@ cfg_if::cfg_if! {
         target_os = "psp",
         target_os = "xous",
         target_os = "solid_asp3",
-        all(target_family = "unix", not(target_os = "espidf"), not(target_os = "l4re"), not(target_os = "nuttx")),
+        all(target_family = "unix", not(target_os = "espidf"), not(target_os = "l4re"), not(target_os = "nuttx"), not(target_os = "nanvix")),
         all(target_vendor = "fortanix", target_env = "sgx"),
     ))] {
         mod gcc;
@@ -41,6 +41,7 @@ cfg_if::cfg_if! {
         // - os=uefi
         // - os=espidf
         // - os=hermit
+        // - os=nanvix
         // - nvptx64-nvidia-cuda
         // - arch=avr
     }
