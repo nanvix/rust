@@ -4,15 +4,13 @@
 pub mod args;
 mod common;
 pub mod env;
-pub mod os;
 pub mod fd;
+pub mod os;
 pub mod pipe;
 pub mod thread;
 pub mod time;
-use ::sys::error::ErrorCode;
+use ::syscall::error::ErrorCode;
 pub use common::*;
-#[allow(unused_imports)]
-use nvx;
 
 /// Converts an `ErrorCode` from Nanvix to a `std::io::ErrorKind`.
 pub fn error_code_to_error_kind(error_code: ErrorCode) -> crate::io::ErrorKind {
