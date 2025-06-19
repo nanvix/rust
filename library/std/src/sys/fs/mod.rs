@@ -17,6 +17,10 @@ cfg_select! {
         pub(crate) use unix::CachedFileMetadata;
         use crate::sys::common::small_c_string::run_path_with_cstr as with_native_path;
     }
+    target_os = "nanvix" => {
+        mod nanvix;
+        pub use nanvix::*;
+    }
     target_os = "windows" => {
         mod windows;
         use windows as imp;

@@ -77,6 +77,9 @@ cfg_select! {
     ) => {
         mod unix;
     }
+    target_os = "nanvix" => {
+        mod nanvix;
+    }
     target_os = "windows" => {
         mod windows;
     }

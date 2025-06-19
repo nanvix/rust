@@ -5,6 +5,10 @@ cfg_select! {
         mod unix;
         pub use unix::*;
     }
+    target_os = "nanvix" => {
+        mod nanvix;
+        pub use nanvix::*;
+    }
     target_os = "windows" => {
         mod windows;
         pub use windows::*;

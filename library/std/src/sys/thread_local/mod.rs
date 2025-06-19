@@ -142,6 +142,7 @@ pub(crate) mod key {
     cfg_select! {
         any(
             all(
+                not(target_os = "nanvix"),
                 not(target_vendor = "apple"),
                 not(target_family = "wasm"),
                 target_family = "unix",
@@ -175,19 +176,18 @@ pub(crate) mod key {
             pub(super) use sgx::{Key, get, set};
             use sgx::{create, destroy};
         }
-        target_os = "xous" => {
+        target_os = "nanvix" => {
             mod racy;
+            mod nanvix;
             #[cfg(test)]
             mod tests;
-            mod xous;
             pub(super) use racy::LazyKey;
-            pub(crate) use xous::destroy_tls;
-            pub(super) use xous::{Key, get, set};
-            use xous::{create, destroy};
+            pub(super) use nanvix::{Key, set};
+            #[cfg(any(not(target_thread_local), test))]
+            pub(super) use nanvix::get;
+            use nanvix::{create, destroy};
         }
-        _ => {}
-    }
-}
+        target_os = "xous" => {
 
 /// Run a callback in a scenario which must not unwind (such as a `extern "C"
 /// fn` declared in a user crate). If the callback unwinds anyway, then

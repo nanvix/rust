@@ -25,6 +25,10 @@ cfg_select! {
         mod uefi;
         pub use uefi::*;
     }
+    target_os = "nanvix" => {
+        mod nanvix;
+        pub use nanvix::*;
+    }
     _ => {
         mod unsupported;
         pub use unsupported::*;

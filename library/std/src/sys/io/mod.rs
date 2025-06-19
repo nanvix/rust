@@ -6,6 +6,10 @@ mod io_slice {
             mod iovec;
             pub use iovec::*;
         }
+        target_os = "nanvix" => {
+            mod nanvix;
+            pub use nanvix::*;
+        }
         target_os = "windows" => {
             mod windows;
             pub use windows::*;
@@ -30,6 +34,10 @@ mod is_terminal {
         any(target_family = "unix", target_os = "wasi") => {
             mod isatty;
             pub use isatty::*;
+        }
+        target_os = "nanvix" => {
+            mod nanvix;
+            pub use nanvix::*;
         }
         target_os = "windows" => {
             mod windows;

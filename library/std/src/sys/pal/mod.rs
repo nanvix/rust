@@ -29,6 +29,10 @@ cfg_select! {
         mod unix;
         pub use self::unix::*;
     }
+    target_os = "nanvix" => {
+        mod nanvix;
+        pub use self::nanvix::*;
+    }
     windows => {
         mod windows;
         pub use self::windows::*;

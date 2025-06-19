@@ -3,6 +3,10 @@ cfg_select! {
         mod unix;
         use unix as imp;
     }
+    target_os = "nanvix" => {
+        mod nanvix;
+        use nanvix as imp;
+    }
     target_os = "windows" => {
         mod windows;
         use windows as imp;

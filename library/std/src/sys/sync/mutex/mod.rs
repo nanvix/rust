@@ -23,6 +23,10 @@ cfg_select! {
         mod pthread;
         pub use pthread::Mutex;
     }
+    target_os = "nanvix" => {
+        mod no_threads;
+        pub use no_threads::Mutex;
+    }
     all(target_os = "windows", target_vendor = "win7") => {
         mod windows7;
         pub use windows7::{Mutex, raw};

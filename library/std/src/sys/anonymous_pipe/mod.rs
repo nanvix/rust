@@ -5,6 +5,10 @@ cfg_select! {
         mod unix;
         pub use unix::{AnonPipe, pipe};
     }
+    target_os = "nanvix" => {
+        mod nanvix;
+        pub use nanvix::{AnonPipe, pipe};
+    }
     windows => {
         mod windows;
         pub use windows::{AnonPipe, pipe};
