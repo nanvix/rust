@@ -7,6 +7,7 @@ pub mod env;
 pub mod fd;
 pub mod os;
 pub mod pipe;
+pub mod sync;
 pub mod thread;
 pub mod time;
 use ::syscall::error::ErrorCode;
