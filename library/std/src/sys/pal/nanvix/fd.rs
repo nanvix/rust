@@ -87,13 +87,15 @@ impl FileDesc {
     pub fn set_cloexec(&self) -> io::Result<()> {
         let fd = self.as_raw_fd();
         let cmd = ::syscall::safe::FileControlRequest::GetFileDescriptorFlags;
-        let flags = ::syscall::safe::fcntl(fd, cmd)
+        let flags = ::syscall::safe::fcntl(fd, &cmd)
             .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))?;
 
-        let flags = FileDescriptorFlags::from(flags).set_close_on_exec(true);
+        let flags = FileDescriptorFlags::try_from(flags)
+            .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))?
+            .set_close_on_exec(true);
 
         let cmd = ::syscall::safe::FileControlRequest::SetFileDescriptorFlags(flags);
-        let _ = safe::fcntl(fd, cmd)
+        let _ = safe::fcntl(fd, &cmd)
             .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason));
 
         Ok(())
