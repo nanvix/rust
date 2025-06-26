@@ -332,10 +332,11 @@ impl OpenOptions {
             RegularFileOpenFlags::read_only()
         };
 
-        let oflags = if self.append { oflags.append() } else { oflags };
-        let oflags = if self.truncate { oflags.truncate() } else { oflags };
-        let oflags = if self.create { oflags.create() } else { oflags };
-        let oflags = if self.create_new { oflags.create().exclusive() } else { oflags };
+        let oflags = if self.append { oflags.set_append(true) } else { oflags };
+        let oflags = if self.truncate { oflags.set_truncate(true) } else { oflags };
+        let oflags = if self.create { oflags.set_create(true) } else { oflags };
+        let oflags =
+            if self.create_new { oflags.set_create(true).set_exclusive(true) } else { oflags };
 
         oflags
     }
@@ -362,7 +363,7 @@ impl File {
                 .others_write(true),
         );
 
-        let rawfd = safe::open(&pathname, flags, permissions)
+        let rawfd = safe::open(&pathname, &flags, permissions)
             .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))?;
 
         Ok(File(unsafe { FileDesc::from_raw_fd(rawfd) }))

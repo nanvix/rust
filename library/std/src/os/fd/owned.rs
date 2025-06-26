@@ -124,7 +124,7 @@ impl BorrowedFd<'_> {
         {
             let fd = self.as_raw_fd();
             let cmd = ::syscall::safe::FileControlRequest::DuplicateWithCloseOnExec(3);
-            let fd = ::syscall::safe::fcntl(fd, cmd).map_err(|error| {
+            let fd = ::syscall::safe::fcntl(fd, &cmd).map_err(|error| {
                 io::Error::new(error_code_to_error_kind(error.code), error.reason)
             })?;
             Ok(unsafe { OwnedFd::from_raw_fd(fd) })
