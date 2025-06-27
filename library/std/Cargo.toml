@@ -31,7 +31,7 @@ std_detect = { path = "../stdarch/crates/std_detect", default-features = false, 
 rustc-demangle = { version = "0.1.24", features = ['rustc-dep-of-std'] }
 
 [target.'cfg(target_os = "nanvix")'.dependencies]
-syscall = { path = "/home/ppenna/src/nanvix/nanvix/src/libs/syscall", default-features = false, features = [
+syscall = { git = "https://github.com/nanvix/nanvix", branch = "nanvix/v0.8.x", package = "syscall", default-features = false, features = [
     'syscall',
     'rustc-dep-of-std',
 ], public = true }
