@@ -13,7 +13,7 @@ cfg_if::cfg_if! {
         mod futex;
         pub use futex::Condvar;
     } else if #[cfg(any(
-        all(target_family = "unix", not(target_os = "nanvix")),
+        target_family = "unix",
         target_os = "teeos",
     ))] {
         mod pthread;
