@@ -39,9 +39,7 @@ impl io::Write for Stdout {
 
     #[inline]
     fn flush(&mut self) -> io::Result<()> {
-        StandardOutput::get()
-            .synchronize()
-            .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))
+        Ok(())
     }
 }
 
@@ -63,9 +61,7 @@ impl io::Write for Stderr {
 
     #[inline]
     fn flush(&mut self) -> io::Result<()> {
-        StandardError::get()
-            .synchronize()
-            .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))
+        Ok(())
     }
 }
 
