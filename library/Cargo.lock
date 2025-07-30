@@ -48,8 +48,8 @@ dependencies = [
 
 [[package]]
 name = "arch"
-version = "0.7.35"
-source = "git+https://github.com/nanvix/nanvix?rev=5693ebcee3b5d30771349107f02d76880b165c2e#5693ebcee3b5d30771349107f02d76880b165c2e"
+version = "0.8.52"
+source = "git+https://github.com/nanvix/nanvix?rev=8ad0d1e0#8ad0d1e0cdb50cb621292e7727a8fdb93850d050"
 dependencies = [
  "cfg-if",
  "compiler_builtins",
@@ -91,8 +91,8 @@ dependencies = [
 
 [[package]]
 name = "config"
-version = "0.7.35"
-source = "git+https://github.com/nanvix/nanvix?rev=5693ebcee3b5d30771349107f02d76880b165c2e#5693ebcee3b5d30771349107f02d76880b165c2e"
+version = "0.8.52"
+source = "git+https://github.com/nanvix/nanvix?rev=8ad0d1e0#8ad0d1e0cdb50cb621292e7727a8fdb93850d050"
 dependencies = [
  "cfg-if",
  "compiler_builtins",
@@ -126,8 +126,8 @@ dependencies = [
 
 [[package]]
 name = "error"
-version = "0.7.35"
-source = "git+https://github.com/nanvix/nanvix?rev=5693ebcee3b5d30771349107f02d76880b165c2e#5693ebcee3b5d30771349107f02d76880b165c2e"
+version = "0.8.52"
+source = "git+https://github.com/nanvix/nanvix?rev=8ad0d1e0#8ad0d1e0cdb50cb621292e7727a8fdb93850d050"
 dependencies = [
  "compiler_builtins",
  "rustc-std-workspace-core",
@@ -222,8 +222,8 @@ dependencies = [
 
 [[package]]
 name = "nvx"
-version = "0.7.35"
-source = "git+https://github.com/nanvix/nanvix?rev=5693ebcee3b5d30771349107f02d76880b165c2e#5693ebcee3b5d30771349107f02d76880b165c2e"
+version = "0.8.52"
+source = "git+https://github.com/nanvix/nanvix?rev=8ad0d1e0#8ad0d1e0cdb50cb621292e7727a8fdb93850d050"
 dependencies = [
  "cfg-if",
  "compiler_builtins",
@@ -399,8 +399,8 @@ dependencies = [
 
 [[package]]
 name = "static_assert"
-version = "0.7.35"
-source = "git+https://github.com/nanvix/nanvix?rev=5693ebcee3b5d30771349107f02d76880b165c2e#5693ebcee3b5d30771349107f02d76880b165c2e"
+version = "0.8.52"
+source = "git+https://github.com/nanvix/nanvix?rev=8ad0d1e0#8ad0d1e0cdb50cb621292e7727a8fdb93850d050"
 dependencies = [
  "compiler_builtins",
  "rustc-std-workspace-core",
@@ -460,8 +460,8 @@ dependencies = [
 
 [[package]]
 name = "sys"
-version = "0.7.35"
-source = "git+https://github.com/nanvix/nanvix?rev=5693ebcee3b5d30771349107f02d76880b165c2e#5693ebcee3b5d30771349107f02d76880b165c2e"
+version = "0.8.52"
+source = "git+https://github.com/nanvix/nanvix?rev=8ad0d1e0#8ad0d1e0cdb50cb621292e7727a8fdb93850d050"
 dependencies = [
  "compiler_builtins",
  "config",
@@ -472,8 +472,8 @@ dependencies = [
 
 [[package]]
 name = "sysalloc"
-version = "0.7.35"
-source = "git+https://github.com/nanvix/nanvix?rev=5693ebcee3b5d30771349107f02d76880b165c2e#5693ebcee3b5d30771349107f02d76880b165c2e"
+version = "0.8.52"
+source = "git+https://github.com/nanvix/nanvix?rev=8ad0d1e0#8ad0d1e0cdb50cb621292e7727a8fdb93850d050"
 dependencies = [
  "arch",
  "cfg-if",
@@ -481,6 +481,7 @@ dependencies = [
  "config",
  "rustc-std-workspace-alloc",
  "rustc-std-workspace-core",
+ "spin",
  "sys",
  "syslog",
  "talc",
@@ -488,8 +489,8 @@ dependencies = [
 
 [[package]]
 name = "sysapi"
-version = "0.7.35"
-source = "git+https://github.com/nanvix/nanvix?rev=5693ebcee3b5d30771349107f02d76880b165c2e#5693ebcee3b5d30771349107f02d76880b165c2e"
+version = "0.8.52"
+source = "git+https://github.com/nanvix/nanvix?rev=8ad0d1e0#8ad0d1e0cdb50cb621292e7727a8fdb93850d050"
 dependencies = [
  "compiler_builtins",
  "rustc-std-workspace-core",
@@ -498,8 +499,8 @@ dependencies = [
 
 [[package]]
 name = "syscall"
-version = "0.7.35"
-source = "git+https://github.com/nanvix/nanvix?rev=5693ebcee3b5d30771349107f02d76880b165c2e#5693ebcee3b5d30771349107f02d76880b165c2e"
+version = "0.8.52"
+source = "git+https://github.com/nanvix/nanvix?rev=8ad0d1e0#8ad0d1e0cdb50cb621292e7727a8fdb93850d050"
 dependencies = [
  "cfg-if",
  "compiler_builtins",
@@ -518,8 +519,8 @@ dependencies = [
 
 [[package]]
 name = "syslog"
-version = "0.7.35"
-source = "git+https://github.com/nanvix/nanvix?rev=5693ebcee3b5d30771349107f02d76880b165c2e#5693ebcee3b5d30771349107f02d76880b165c2e"
+version = "0.8.52"
+source = "git+https://github.com/nanvix/nanvix?rev=8ad0d1e0#8ad0d1e0cdb50cb621292e7727a8fdb93850d050"
 dependencies = [
  "cfg-if",
  "compiler_builtins",
@@ -558,8 +559,8 @@ dependencies = [
 
 [[package]]
 name = "type-safe"
-version = "0.7.35"
-source = "git+https://github.com/nanvix/nanvix?rev=5693ebcee3b5d30771349107f02d76880b165c2e#5693ebcee3b5d30771349107f02d76880b165c2e"
+version = "0.8.52"
+source = "git+https://github.com/nanvix/nanvix?rev=8ad0d1e0#8ad0d1e0cdb50cb621292e7727a8fdb93850d050"
 dependencies = [
  "compiler_builtins",
  "rustc-std-workspace-alloc",
