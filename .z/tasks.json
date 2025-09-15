@@ -1,0 +1,18 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "./x check",
+            "command": "WASI_SDK_PATH=/opt/wasi-sdk/ ./x check --stage 1 --incremental --target x86_64-unknown-linux-gnu,i686-unknown-nanvix --build-dir=build-rust-analyzer",
+            "type": "shell",
+            "problemMatcher": "$rustc",
+            "presentation": {
+                "clear": true
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        }
+    ]
+}
