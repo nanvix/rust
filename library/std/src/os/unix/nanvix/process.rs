@@ -7,7 +7,7 @@
 use crate::ffi::OsStr;
 use crate::os::unix::io::{AsFd, AsRawFd, BorrowedFd, IntoRawFd, OwnedFd, RawFd};
 use crate::sealed::Sealed;
-use crate::sys_common::{AsInner, FromInner, IntoInner};
+use crate::sys_common::{AsInner, AsInnerMut, FromInner, IntoInner};
 use crate::{io, process, sys};
 
 type UserId = ::syscall::sysapi::sys_types::uid_t;
@@ -182,6 +182,51 @@ pub trait CommandExt: Sealed {
     /// ```
     #[stable(feature = "process_set_process_group", since = "1.64.0")]
     fn process_group(&mut self, pgroup: i32) -> &mut process::Command;
+}
+
+#[stable(feature = "rust1", since = "1.0.0")]
+impl CommandExt for process::Command {
+    fn uid(&mut self, id: UserId) -> &mut process::Command {
+        self.as_inner_mut().uid(id);
+        self
+    }
+
+    fn gid(&mut self, id: GroupId) -> &mut process::Command {
+        self.as_inner_mut().gid(id);
+        self
+    }
+
+    fn groups(&mut self, groups: &[GroupId]) -> &mut process::Command {
+        self.as_inner_mut().groups(groups);
+        self
+    }
+
+    unsafe fn pre_exec<F>(&mut self, f: F) -> &mut process::Command
+    where
+        F: FnMut() -> io::Result<()> + Send + Sync + 'static,
+    {
+        self.as_inner_mut().pre_exec(Box::new(f));
+        self
+    }
+
+    fn exec(&mut self) -> io::Error {
+        // NOTE: This may *not* be safe to call after `libc::fork`, because it
+        // may allocate. That may be worth fixing at some point in the future.
+        self.as_inner_mut().exec(sys::process::Stdio::Inherit)
+    }
+
+    fn arg0<S>(&mut self, arg: S) -> &mut process::Command
+    where
+        S: AsRef<OsStr>,
+    {
+        self.as_inner_mut().set_arg_0(arg.as_ref());
+        self
+    }
+
+    fn process_group(&mut self, pgroup: i32) -> &mut process::Command {
+        self.as_inner_mut().pgroup(pgroup);
+        self
+    }
 }
 
 /// Unix-specific extensions to [`process::ExitStatus`] and
