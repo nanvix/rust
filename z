@@ -3,76 +3,307 @@
 # Copyright(c) The Maintainers of Nanvix.
 # Licensed under the MIT License.
 
+#
+# Utility for building development tools for Nanvix.
+#
+# Run './z help' for more information on how to use this utility.
+#
+# Relevant Environment Variables
+#
+#   - Z_TARGET: Target architecture.
+#   - Z_STAGE: Build stage.
+#   - Z_INSTALL_LOCATION: Installation directory.
+#   - Z_SYSROOT_LOCATION: Sysroot directory.
+#   - Z_RELEASE_NAME: Release name.
+#
+# shellcheck disable=SC2329
+# shellcheck disable=SC2317
+# shellcheck disable=SC2034
+
+#==================================================================================================
+
+# Fast fail on errors, unset variables, and pipe failures.
+set -euo pipefail
+
+#==================================================================================================
+# Import Utils Script
+#==================================================================================================
+
+UTILS_SCRIPT_VERSION="c24dedaf76a4833b388597805e2c0625cef0c453"
+UTILS_SCRIPT_URL="https://raw.githubusercontent.com/nanvix/scripts/${UTILS_SCRIPT_VERSION}/utils.sh"
+
+utils_script="/tmp/utils-${UTILS_SCRIPT_VERSION}.sh"
+
+# Download only if the file doesn't exist or is empty
+if [[ ! -s "$utils_script" ]]; then
+
+    if command -v curl >/dev/null 2>&1; then
+        curl -fsSL "$UTILS_SCRIPT_URL" -o "$utils_script" || {
+            echo "Failed to download utils.sh"
+            rm -f "$utils_script"
+            exit 1
+        }
+    elif command -v wget >/dev/null 2>&1; then
+        wget -qO "$utils_script" "$UTILS_SCRIPT_URL" || {
+            echo "Failed to download utils.sh"
+            rm -f "$utils_script"
+            exit 1
+        }
+    else
+        echo "curl or wget required"
+        exit 1
+    fi
+fi
+
+# Source the downloaded script
+# shellcheck disable=SC1090
+source "${utils_script}"
+
+#==================================================================================================
+# Z Constants
+#==================================================================================================
+
+# Project name.
+readonly Z_PROJECT_NAME="Rust"
+# Directory used when building, empty if not required.
+readonly Z_PROJECT_BUILD_DIR=""
+
+# Required Build Tools (tool_name => minimum_version)
+readonly -A Z_PROJECT_REQUIRED_TOOLS=(
+    ["gzip"]="1.12.0"
+    ["tar"]="1.34.0"
+    ["wget"]="1.21.4"
+)
+
+# Required System Packages for Setup
+readonly Z_PROJECT_REQUIRED_PACKAGES=("build-essential" "wget" "gzip" "tar")
+
 #===================================================================================================
-# Global Variables
+# Project Specific Constants
 #===================================================================================================
 
-NANVIX_HOME=$(git rev-parse --show-toplevel)
+readonly CHANGE_ID=138986
 
-CHANGE_ID=138986
+# WASI SDK.
+readonly WASI_OS="linux"
+readonly WASI_ARCH="x86_64"
+readonly WASI_VERSION="25"
+readonly WASI_VERSION_FULL="${WASI_VERSION}.0"
+readonly WASI_SDK_FILE="wasi-sdk-${WASI_VERSION_FULL}-${WASI_ARCH}-${WASI_OS}.tar.gz"
+readonly WASI_SDK_URL="https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${WASI_VERSION}/${WASI_SDK_FILE}"
 
 #===================================================================================================
-# Sanity Checks
+# Project-Specific Functions
 #===================================================================================================
 
-# Check if rustup is installed.
-if ! command -v rustup >/dev/null 2>&1;
-then
-    echo -e "\033[0;31mError: rustup is not installed. Please install rustup before running this script.\033[0m"
+#
+# Description
+#
+#   Executes project-specific steps for downloading dependencies.
+#
+# Return Value
+#
+#   - On success, this function returns zero.
+#   - On failure, this function returns non-zero.
+#
+download_steps() {
+
+    # Check if rustup is installed.
+    if ! command -v rustup >/dev/null 2>&1;
+    then
+        print_error "rustup is not installed. Please install rustup before running this script."
+        return 1
+    fi
+
+    # Install nightly toolchain if not installed and set it as the default.
+    if ! rustup toolchain list | grep -q '^nightly'; then
+        rustup install nightly || {
+            print_error "Failed to install nightly toolchain."
+            return 1
+        }
+    fi
+    rustup override set nightly || {
+        print_error "Failed to set nightly toolchain as default."
+        return 1
+    }
+
+    pushd "${Z_SYSROOT_LOCATION}" || {
+        print_error "Failed to enter directory ${Z_SYSROOT_LOCATION}."
+        return 1
+    }
+
+    # Get WASI SDK.
+    if [ ! -f "${WASI_SDK_FILE}" ];
+    then
+        wget "${WASI_SDK_URL}" -O "${WASI_SDK_FILE}" || {
+            print_error "Failed to download ${WASI_SDK_FILE}."
+            popd || {
+                print_error "Failed to return to previous directory."
+            }
+            return 1
+        }
+    fi
+
+    # Check file exists.
+    if [ ! -f "${WASI_SDK_FILE}" ];
+    then
+        print_error "File ${WASI_SDK_FILE} does not exist."
+        popd || {
+            print_error "Failed to return to previous directory."
+        }
+        return 1
+    fi
+
+    # Extract WASI SDK.
+    if [ ! -d "wasi-sdk-${WASI_VERSION_FULL}-${WASI_ARCH}-${WASI_OS}" ];
+    then
+        tar xvf "${WASI_SDK_FILE}" || {
+            print_error "Failed to extract ${WASI_SDK_FILE}."
+            popd || {
+                print_error "Failed to return to previous directory."
+            }
+            return 1
+        }
+    fi
+
+    popd || {
+        print_error "Failed to return to previous directory."
+        return 1
+    }
+
+    return 0
+}
+
+#
+# Description
+#
+#   Executes project-specific steps for configuring a build.
+#
+# Return Value
+#
+#   - On success, this function returns zero.
+#   - On failure, this function returns non-zero.
+#
+# Usage Example
+#
+#   configure_steps "i686-nanvix" "/usr/local"
+#
+configure_steps() {
+    WASI_SDK_PATH=
+    WASI_SDK_PATH="${Z_SYSROOT_LOCATION}/wasi-sdk-${WASI_VERSION_FULL}-${WASI_ARCH}-${WASI_OS}"
+    export WASI_SDK_PATH
+
+    # Ensure WASK SDK path exists.
+    if [ ! -d "$WASI_SDK_PATH" ]; then
+        print_error "WASI SDK path $WASI_SDK_PATH does not exist."
+        return 1
+    fi
+
+    # Cleanup previous `bootstrap.toml` if it exists.
+    if [ -f "bootstrap.toml" ]; then
+        rm -f "bootstrap.toml" || {
+            print_error "Failed to remove existing bootstrap.toml file."
+            unset WASI_SDK_PATH
+            return 1
+        }
+    fi
+
+    # Configure the build.
+    ./configure \
+        --release-channel=nightly \
+        --disable-docs \
+        --disable-compiler-docs \
+        --set llvm.download-ci-llvm=false \
+        --enable-cargo-native-static \
+        --target=x86_64-unknown-linux-gnu,wasm32-wasip1,i686-unknown-nanvix \
+        --set change-id=$CHANGE_ID || {
+        print_error "Failed to configure the project."
+        unset WASI_SDK_PATH
+        return 1
+    }
+
+    unset WASI_SDK_PATH
+
+    return 0
+}
+
+#
+# Description
+#
+#   Project-specific steps for building the project.
+#
+# Parameters
+#
+#   - $1: Number of parallel build jobs.
+#
+# Usage Example
+#
+#   build_steps 4 "all" "check"
+#
+build_steps() {
+    WASI_SDK_PATH=
+    WASI_SDK_PATH="${Z_SYSROOT_LOCATION}/wasi-sdk-${WASI_VERSION_FULL}-${WASI_ARCH}-${WASI_OS}"
+    export WASI_SDK_PATH
+
+    # Ensure WASK SDK path exists.
+    if [ ! -d "$WASI_SDK_PATH" ]; then
+        print_error "WASI SDK path $WASI_SDK_PATH does not exist."
+        return 1
+    fi
+
+    # Build the toolchain.
+    ./x build --incremental --target x86_64-unknown-linux-gnu,wasm32-wasip1,i686-unknown-nanvix || {
+        print_error "Failed to build the project."
+        unset WASI_SDK_PATH
+        return 1
+    }
+
+    unset WASI_SDK_PATH
+
+    return 0
+}
+
+#
+# Description
+#
+#   Project-specific steps for installing the project.
+#
+# Return Value
+#
+#   - On success, this function returns zero.
+#   - On failure, this function returns non-zero.
+#
+# Usage Example
+#
+#   install_steps "install" "/usr/local"
+#
+install_steps() {
+    # Ensure build artifacts exist.
+    if [ ! -d "build/host/stage2" ]; then
+        print_error "Build artifacts not found. Please run the build step first."
+        return 1
+    fi
+
+    # Link the toolchain.
+    if ! rustup toolchain list | grep -q '^nanvix-x86'; then
+        rustup toolchain link nanvix-x86 build/host/stage2 || {
+            print_error "Failed to link the toolchain."
+            return 1
+        }
+    else
+        print_info "Toolchain nanvix-x86 already linked. Skipping link step."
+    fi
+
+    return 0
+}
+
+#==================================================================================================
+# Main Script
+#==================================================================================================
+
+# Run main function with all arguments
+zmain "$@" || {
     exit 1
-fi
+}
 
-WASI_OS=linux
-WASI_ARCH=x86_64
-WASI_VERSION=25
-WASI_VERSION_FULL=${WASI_VERSION}.0
-WASI_SDK_FILE=wasi-sdk-${WASI_VERSION_FULL}-${WASI_ARCH}-${WASI_OS}.tar.gz
-
-# Get WASI SDK.
-if [ ! -f "${WASI_SDK_FILE}" ];
-then
-    wget https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-${WASI_VERSION}/${WASI_SDK_FILE}
-fi
-
-# Check file was downloaded successfully.
-if [ ! -f "${WASI_SDK_FILE}" ];
-then
-    echo -e "\033[0;31mError: Failed to download ${WASI_SDK_FILE}.\033[0m"
-    exit 1
-fi
-
-if [ ! -d "wasi-sdk-${WASI_VERSION_FULL}-${WASI_ARCH}-${WASI_OS}" ];
-then
-    tar xvf "${WASI_SDK_FILE}"
-fi
-
-WASI_SDK_PATH=
-WASI_SDK_PATH="$(pwd)/wasi-sdk-${WASI_VERSION_FULL}-${WASI_ARCH}-${WASI_OS}"
-export WASI_SDK_PATH
-
-# Configure the build.
-./configure \
-    --release-channel=nightly \
-    --disable-docs \
-    --disable-compiler-docs \
-    --set llvm.download-ci-llvm=false \
-    --enable-cargo-native-static \
-    --target=x86_64-unknown-linux-gnu,wasm32-wasip1,i686-unknown-nanvix \
-    --set change-id=$CHANGE_ID
-
-# Build the toolchain.
-./x build --incremental --target x86_64-unknown-linux-gnu,wasm32-wasip1,i686-unknown-nanvix
-
-# Install nightly toolchain if not installed and set it as the default.
-if ! rustup toolchain list | grep -q '^nightly'; then
-    rustup install nightly
-fi
-rustup override set nightly
-
-# Check if the toolchain was built successfully.
-if [ -d "build/host/stage2" ]; then
-    rustup toolchain link nanvix-x86 build/host/stage2
-else
-    echo -e "\033[0;31mError: build/host/stage2 directory does not exist. Toolchain link skipped.\033[0m"
-    exit 1
-fi
+exit 0
