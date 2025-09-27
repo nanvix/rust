@@ -72,6 +72,16 @@ impl Thread {
             })
             .unwrap();
     }
+
+    pub fn id(&self) -> pthread_t {
+        self.id
+    }
+
+    pub fn into_id(self) -> pthread_t {
+        let id = self.id;
+        ::core::mem::forget(self);
+        id
+    }
 }
 
 pub fn available_parallelism() -> io::Result<NonZero<usize>> {

@@ -104,7 +104,6 @@ pub mod process;
 #[path = "nanvix/process.rs"]
 pub mod process;
 pub mod raw;
-#[cfg(not(target_os = "nanvix"))]
 pub mod thread;
 
 /// A prelude for conveniently writing platform-specific code.
