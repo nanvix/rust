@@ -8,6 +8,11 @@ use crate::sys::unsupported;
 use crate::sys_common::process::{CommandEnv, CommandEnvs};
 use crate::{fmt, io};
 
+use syscall::sysapi::sys_types::pid_t;
+use syscall::sysapi::sys_types::uid_t;
+use syscall::sysapi::sys_types::gid_t;
+
+
 ////////////////////////////////////////////////////////////////////////////////
 // Command
 ////////////////////////////////////////////////////////////////////////////////
@@ -18,9 +23,14 @@ pub struct Command {
     env: CommandEnv,
 
     cwd: Option<OsString>,
+    uid: Option<uid_t>,
+    gid: Option<gid_t>,
+    closures: Vec<Box<dyn FnMut() -> io::Result<()> + Send + Sync>>,
+    groups: Option<Box<[gid_t]>>,
     stdin: Option<Stdio>,
     stdout: Option<Stdio>,
     stderr: Option<Stdio>,
+    pgroup: Option<pid_t>,
 }
 
 // passed back to std::process with the pipes connected to the child, if any
@@ -49,10 +59,19 @@ impl Command {
             args: vec![program.to_owned()],
             env: Default::default(),
             cwd: None,
+            uid: None,
+            gid: None,
+            groups: None,
+            closures: Vec::new(),
             stdin: None,
             stdout: None,
             stderr: None,
+            pgroup: None,
         }
+    }
+
+    pub fn set_arg_0(&mut self, _arg: &OsStr) {
+        // TODO: Set a new arg0
     }
 
     pub fn arg(&mut self, arg: &OsStr) {
@@ -65,6 +84,26 @@ impl Command {
 
     pub fn cwd(&mut self, dir: &OsStr) {
         self.cwd = Some(dir.to_owned());
+    }
+
+    pub fn uid(&mut self, id: uid_t) {
+        self.uid = Some(id);
+    }
+
+    pub fn gid(&mut self, id: gid_t) {
+        self.gid = Some(id);
+    }
+
+    pub fn groups(&mut self, groups: &[gid_t]) {
+        self.groups = Some(Box::from(groups));
+    }
+
+    pub fn pgroup(&mut self, pgroup: pid_t) {
+        self.pgroup = Some(pgroup);
+    }
+
+    pub unsafe fn pre_exec(&mut self, f: Box<dyn FnMut() -> io::Result<()> + Send + Sync>) {
+        self.closures.push(f);
     }
 
     pub fn stdin(&mut self, stdin: Stdio) {
@@ -105,6 +144,9 @@ impl Command {
         unsupported()
     }
 
+   pub fn exec(&mut self, _default: Stdio) -> io::Error {
+        unsupported().expect("this is not supported")
+    }
     pub fn output(&mut self) -> io::Result<(ExitStatus, Vec<u8>, Vec<u8>)> {
         unsupported()
     }
