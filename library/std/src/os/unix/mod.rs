@@ -103,7 +103,6 @@ pub mod process;
 #[cfg(target_os = "nanvix")]
 #[path = "nanvix/process.rs"]
 pub mod process;
-#[cfg(not(target_os = "nanvix"))]
 pub mod raw;
 #[cfg(not(target_os = "nanvix"))]
 pub mod thread;
