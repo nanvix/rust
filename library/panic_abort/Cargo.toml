@@ -21,7 +21,7 @@ libc = { version = "0.2", default-features = false }
 alloc = { path = "../alloc" }
 
 [target.'cfg(target_os = "nanvix")'.dependencies]
-syscall = { git = "https://github.com/nanvix/nanvix", rev = "c8786979da799cd3ca4787632b5cd0485bccf955", package = "syscall", default-features = false, features = [
+syscall = { git = "https://github.com/nanvix/nanvix", rev = "10bac7735b5c34f0ff6f6cb5925b1e271bbba45c", package = "syscall", default-features = false, features = [
     "syscall",
     "rustc-dep-of-std",
 ] }
