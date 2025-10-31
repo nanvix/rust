@@ -38,7 +38,6 @@ const STAGE0_MISSING_TARGETS: &[&str] = &[
     // just a dummy comment so the list doesn't get onelined
     "aarch64_be-unknown-hermit",
     "aarch64_be-unknown-none-softfloat",
-    "wasm32-wali-linux-musl",
     "i686-unknown-nanvix",
 ];
 

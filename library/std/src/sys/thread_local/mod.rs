@@ -188,6 +188,18 @@ pub(crate) mod key {
             use nanvix::{create, destroy};
         }
         target_os = "xous" => {
+            mod racy;
+            #[cfg(test)]
+            mod tests;
+            mod xous;
+            pub(super) use racy::LazyKey;
+            pub(crate) use xous::destroy_tls;
+            pub(super) use xous::{Key, get, set};
+            use xous::{create, destroy};
+        }
+        _ => {}
+    }
+}
 
 /// Run a callback in a scenario which must not unwind (such as a `extern "C"
 /// fn` declared in a user crate). If the callback unwinds anyway, then

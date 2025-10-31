@@ -10,7 +10,7 @@ pub(crate) fn target() -> Target {
     base.disable_redzone = true;
     base.panic_strategy = PanicStrategy::Abort;
     base.endian = Endian::Little;
-    base.c_int_width = "32".into();
+    base.c_int_width = 32;
     base.max_atomic_width = Some(64);
     base.code_model = Some(CodeModel::Small);
     base.features = "-mmx,-avx,-avx2,-sse2,-sse,+soft-float".into();
