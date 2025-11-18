@@ -6,6 +6,11 @@ use crate::path::{Path, PathBuf};
 pub mod common;
 
 cfg_select! {
+    target_os = "nanvix" => {
+        mod nanvix;
+        use nanvix as imp;
+        pub use nanvix::*;
+    }
     target_family = "unix" => {
         mod unix;
         use unix as imp;

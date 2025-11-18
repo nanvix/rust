@@ -2,6 +2,10 @@
 
 mod io_slice {
     cfg_select! {
+        target_os = "nanvix" => {
+            mod nanvix;
+            pub use nanvix::*;
+        }
         any(target_family = "unix", target_os = "hermit", target_os = "solid_asp3", target_os = "trusty") => {
             mod iovec;
             pub use iovec::*;
@@ -27,6 +31,10 @@ mod io_slice {
 
 mod is_terminal {
     cfg_select! {
+        target_os = "nanvix" => {
+            mod nanvix;
+            pub use nanvix::*;
+        }
         any(target_family = "unix", target_os = "wasi") => {
             mod isatty;
             pub use isatty::*;

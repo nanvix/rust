@@ -664,6 +664,9 @@
 //@ revisions: x86_64_unknown_motor
 //@ [x86_64_unknown_motor] compile-flags: --target x86_64-unknown-motor
 //@ [x86_64_unknown_motor] needs-llvm-components: x86
+//@ revisions: i686_unknown_nanvix
+//@ [i686_unknown_nanvix] compile-flags: --target i686-unknown-nanvix
+//@ [i686_unknown_nanvix] needs-llvm-components: x86
 //@ revisions: x86_64_unknown_netbsd
 //@ [x86_64_unknown_netbsd] compile-flags: --target x86_64-unknown-netbsd
 //@ [x86_64_unknown_netbsd] needs-llvm-components: x86

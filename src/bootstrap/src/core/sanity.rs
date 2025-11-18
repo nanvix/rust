@@ -34,6 +34,9 @@ pub struct Finder {
 // Targets can be removed from this list once they are present in the stage0 compiler (usually by updating the beta compiler of the bootstrap).
 const STAGE0_MISSING_TARGETS: &[&str] = &[
     // just a dummy comment so the list doesn't get onelined
+    "aarch64_be-unknown-hermit",
+    "aarch64_be-unknown-none-softfloat",
+    "i686-unknown-nanvix",
     "x86_64-unknown-motor",
 ];
 

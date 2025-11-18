@@ -3,6 +3,9 @@
 #![forbid(unsafe_op_in_unsafe_fn)]
 
 cfg_select! {
+    target_os = "nanvix" => {
+        pub use crate::sys::pal::nanvix::fd::*;
+    }
     target_family = "unix" => {
         mod unix;
         pub use unix::*;
