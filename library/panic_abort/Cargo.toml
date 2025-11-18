@@ -19,3 +19,14 @@ libc = { version = "0.2", default-features = false }
 
 [target.'cfg(any(target_os = "android", target_os = "zkvm"))'.dependencies]
 alloc = { path = "../alloc" }
+
+[target.'cfg(target_os = "nanvix")'.dependencies]
+syscall = { git = "https://github.com/nanvix/nanvix", rev = "10bac7735b5c34f0ff6f6cb5925b1e271bbba45c", package = "syscall", default-features = false, features = [
+    "syscall",
+    "rustc-dep-of-std",
+] }
+
+[lints.rust.unexpected_cfgs]
+level = "warn"
+check-cfg = ['cfg(bootstrap)', 'cfg(target_os, values("nanvix"))']
+

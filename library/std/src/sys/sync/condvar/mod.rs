@@ -21,6 +21,10 @@ cfg_select! {
         mod pthread;
         pub use pthread::Condvar;
     }
+    target_os = "nanvix" => {
+        mod no_threads;
+        pub use no_threads::Condvar;
+    }
     all(target_os = "windows", target_vendor = "win7") => {
         mod windows7;
         pub use windows7::Condvar;
