@@ -25,6 +25,10 @@
 pub mod common;
 
 cfg_select! {
+    target_os = "nanvix" => {
+        mod nanvix;
+        pub use self::nanvix::*;
+    }
     unix => {
         mod unix;
         pub use self::unix::*;

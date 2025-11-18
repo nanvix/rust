@@ -1,6 +1,10 @@
 #![forbid(unsafe_op_in_unsafe_fn)]
 
 cfg_select! {
+    target_os = "nanvix" => {
+        mod nanvix;
+        pub use nanvix::{AnonPipe, pipe};
+    }
     unix => {
         mod unix;
         pub use unix::{AnonPipe, pipe};

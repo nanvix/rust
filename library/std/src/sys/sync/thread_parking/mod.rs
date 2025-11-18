@@ -38,6 +38,10 @@ cfg_select! {
         mod pthread;
         pub use pthread::Parker;
     }
+    target_os = "nanvix" => {
+        mod unsupported;
+        pub use unsupported::Parker;
+    }
     _ => {
         mod unsupported;
         pub use unsupported::Parker;

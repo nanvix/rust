@@ -142,6 +142,7 @@ pub(crate) mod key {
     cfg_select! {
         any(
             all(
+                not(target_os = "nanvix"),
                 not(target_vendor = "apple"),
                 not(target_family = "wasm"),
                 target_family = "unix",
@@ -174,6 +175,17 @@ pub(crate) mod key {
             pub(super) use racy::LazyKey;
             pub(super) use sgx::{Key, get, set};
             use sgx::{create, destroy};
+        }
+        target_os = "nanvix" => {
+            mod racy;
+            mod nanvix;
+            #[cfg(test)]
+            mod tests;
+            pub(super) use racy::LazyKey;
+            pub(super) use nanvix::{Key, set};
+            #[cfg(any(not(target_thread_local), test))]
+            pub(super) use nanvix::get;
+            use nanvix::{create, destroy};
         }
         target_os = "xous" => {
             mod racy;

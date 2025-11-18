@@ -1,4 +1,8 @@
 cfg_select! {
+    target_os = "nanvix" => {
+        mod nanvix;
+        pub use nanvix::*;
+    }
     any(
         all(target_family = "unix", not(target_os = "l4re")),
         target_os = "windows",
