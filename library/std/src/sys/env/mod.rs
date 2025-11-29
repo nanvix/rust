@@ -15,7 +15,7 @@ mod common;
 
 cfg_select! {
     target_os = "nanvix" => {
-        pub use crate::sys::pal::nanvix::env::*;
+        pub use crate::sys::pal::env::*;
     }
     target_family = "unix" => {
         mod unix;

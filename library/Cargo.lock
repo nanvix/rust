@@ -40,7 +40,7 @@ dependencies = [
 
 [[package]]
 name = "arch"
-version = "0.10.113"
+version = "0.10.116"
 dependencies = [
  "cfg-if",
  "compiler_builtins",
@@ -79,7 +79,7 @@ dependencies = [
 
 [[package]]
 name = "config"
-version = "0.10.113"
+version = "0.10.116"
 dependencies = [
  "cfg-if",
  "compiler_builtins",
@@ -112,7 +112,7 @@ dependencies = [
 
 [[package]]
 name = "error"
-version = "0.10.113"
+version = "0.10.116"
 dependencies = [
  "compiler_builtins",
  "rustc-std-workspace-core",
@@ -179,7 +179,7 @@ dependencies = [
 
 [[package]]
 name = "libc_stdlib"
-version = "0.10.113"
+version = "0.10.116"
 dependencies = [
  "cfg-if",
  "compiler_builtins",
@@ -212,7 +212,7 @@ dependencies = [
 
 [[package]]
 name = "nvx"
-version = "0.10.113"
+version = "0.10.116"
 dependencies = [
  "cfg-if",
  "compiler_builtins",
@@ -363,6 +363,7 @@ checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 [[package]]
 name = "spin"
 version = "0.10.0"
+source = "git+https://github.com/nanvix/spin-rs?branch=nanvix%2Fv0.10.0#ec00ed314406d2cc8313ef72c06178619ee0b48c"
 dependencies = [
  "compiler_builtins",
  "rustc-std-workspace-core",
@@ -370,7 +371,7 @@ dependencies = [
 
 [[package]]
 name = "static_assert"
-version = "0.10.113"
+version = "0.10.116"
 dependencies = [
  "compiler_builtins",
  "rustc-std-workspace-core",
@@ -417,7 +418,7 @@ dependencies = [
 
 [[package]]
 name = "sys"
-version = "0.10.113"
+version = "0.10.116"
 dependencies = [
  "compiler_builtins",
  "config",
@@ -428,7 +429,7 @@ dependencies = [
 
 [[package]]
 name = "sysalloc"
-version = "0.10.113"
+version = "0.10.116"
 dependencies = [
  "arch",
  "cfg-if",
@@ -445,7 +446,7 @@ dependencies = [
 
 [[package]]
 name = "sysapi"
-version = "0.10.113"
+version = "0.10.116"
 dependencies = [
  "compiler_builtins",
  "config",
@@ -455,7 +456,7 @@ dependencies = [
 
 [[package]]
 name = "syscall"
-version = "0.10.113"
+version = "0.10.116"
 dependencies = [
  "arch",
  "cfg-if",
@@ -476,7 +477,7 @@ dependencies = [
 
 [[package]]
 name = "syslog"
-version = "0.10.113"
+version = "0.10.116"
 dependencies = [
  "cfg-if",
  "compiler_builtins",
@@ -497,6 +498,7 @@ dependencies = [
 [[package]]
 name = "talc"
 version = "4.4.2"
+source = "git+https://github.com/nanvix/talc?rev=12e66643796be912933a369a2d556aaac4c68771#12e66643796be912933a369a2d556aaac4c68771"
 dependencies = [
  "compiler_builtins",
  "rustc-std-workspace-core",
@@ -514,7 +516,7 @@ dependencies = [
 
 [[package]]
 name = "type-safe"
-version = "0.10.113"
+version = "0.10.116"
 dependencies = [
  "compiler_builtins",
  "rustc-std-workspace-alloc",

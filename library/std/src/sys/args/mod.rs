@@ -14,7 +14,7 @@ mod common;
 
 cfg_select! {
     target_os = "nanvix" => {
-        pub use crate::sys::pal::nanvix::args::*;
+        pub use crate::sys::pal::args::*;
     }
     any(
         all(target_family = "unix", not(any(target_os = "espidf", target_os = "vita"))),

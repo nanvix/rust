@@ -4,7 +4,7 @@
 
 cfg_select! {
     target_os = "nanvix" => {
-        pub use crate::sys::pal::nanvix::fd::*;
+        pub use crate::sys::pal::fd::*;
     }
     target_family = "unix" => {
         mod unix;

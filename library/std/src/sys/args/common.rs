@@ -12,6 +12,7 @@ impl !Sync for Args {}
 
 impl Args {
     #[inline]
+    #[allow(dead_code)]
     pub fn new(args: Vec<OsString>) -> Self {
         Args { iter: args.into_iter() }
     }

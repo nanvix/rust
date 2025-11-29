@@ -5,14 +5,15 @@ use ::syscall::safe::{
 };
 use ::syscall::sysapi::sys_stat;
 
-use crate::ffi::{OsStr, OsString};
+use crate::ffi::{CStr, OsStr, OsString};
 use crate::fmt;
+use crate::fs::TryLockError;
 use crate::hash::{Hash, Hasher};
 use crate::io::{self, BorrowedCursor, IoSlice, IoSliceMut, SeekFrom};
 use crate::os::fd::{AsFd, AsRawFd, BorrowedFd, FromRawFd, IntoRawFd, RawFd};
 use crate::os::nanvix::ffi::OsStrExt;
 use crate::path::{Path, PathBuf};
-use crate::sys::fd::FileDesc;
+use crate::sys::pal::fd::FileDesc;
 pub use crate::sys::fs::common::exists;
 use crate::sys::time::SystemTime;
 use crate::sys::{error_code_to_error_kind, unsupported};
@@ -397,12 +398,18 @@ impl File {
         unsupported()
     }
 
-    pub fn try_lock(&self) -> io::Result<bool> {
-        unsupported()
+    pub fn try_lock(&self) -> Result<(), TryLockError> {
+        Err(TryLockError::Error(io::const_error!(
+            io::ErrorKind::Unsupported,
+            "try_lock() not supported"
+        )))
     }
 
-    pub fn try_lock_shared(&self) -> io::Result<bool> {
-        unsupported()
+    pub fn try_lock_shared(&self) -> Result<(), TryLockError> {
+        Err(TryLockError::Error(io::const_error!(
+            io::ErrorKind::Unsupported,
+            "try_lock_shared() not supported"
+        )))
     }
 
     pub fn unlock(&self) -> io::Result<()> {
@@ -432,6 +439,10 @@ impl File {
 
     pub fn read_buf(&self, cursor: BorrowedCursor<'_>) -> io::Result<()> {
         self.0.read_buf(cursor)
+    }
+
+    pub fn read_buf_at(&self, _cursor: BorrowedCursor<'_>, _offset: u64) -> io::Result<()> {
+        unsupported()
     }
 
     pub fn read_vectored_at(
@@ -488,6 +499,14 @@ impl File {
 
     pub fn tell(&self) -> io::Result<u64> {
         self.seek(SeekFrom::Current(0))
+    }
+
+    pub fn size(&self) -> Option<io::Result<u64>> {
+        match self.file_attr().map(|attr| attr.size()) {
+            // Fall back to default implementation if the returned size is 0.
+            Ok(0) => None,
+            result => Some(result),
+        }
     }
 
     pub fn duplicate(&self) -> io::Result<File> {
@@ -601,8 +620,8 @@ pub fn readdir(p: &Path) -> io::Result<ReadDir> {
     Ok(ReadDir { root: raw_dir })
 }
 
-pub fn unlink(p: &Path) -> io::Result<()> {
-    let path = p.to_str().ok_or_else(|| {
+pub fn unlink(p: &CStr) -> io::Result<()> {
+    let path = p.to_str().map_err(|_| {
         io::Error::new(io::ErrorKind::InvalidInput, "path contains invalid UTF-8")
     })?;
 
@@ -613,12 +632,12 @@ pub fn unlink(p: &Path) -> io::Result<()> {
         .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))
 }
 
-pub fn rename(old: &Path, new: &Path) -> io::Result<()> {
-    let old = old.to_str().ok_or_else(|| {
+pub fn rename(old: &CStr, new: &CStr) -> io::Result<()> {
+    let old = old.to_str().map_err(|_| {
         io::Error::new(io::ErrorKind::InvalidInput, "old path contains invalid UTF-8")
     })?;
 
-    let new = new.to_str().ok_or_else(|| {
+    let new = new.to_str().map_err(|_| {
         io::Error::new(io::ErrorKind::InvalidInput, "new path contains invalid UTF-8")
     })?;
 
@@ -632,8 +651,8 @@ pub fn rename(old: &Path, new: &Path) -> io::Result<()> {
         .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))
 }
 
-pub fn set_perm(p: &Path, perm: FilePermissions) -> io::Result<()> {
-    let path = p.to_str().ok_or_else(|| {
+pub fn set_perm(p: &CStr, perm: FilePermissions) -> io::Result<()> {
+    let path = p.to_str().map_err(|_| {
         io::Error::new(io::ErrorKind::InvalidInput, "path contains invalid UTF-8")
     })?;
 
@@ -644,7 +663,7 @@ pub fn set_perm(p: &Path, perm: FilePermissions) -> io::Result<()> {
         .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))
 }
 
-pub fn rmdir(_p: &Path) -> io::Result<()> {
+pub fn rmdir(_p: &CStr) -> io::Result<()> {
     unsupported()
 }
 
@@ -652,8 +671,8 @@ pub fn remove_dir_all(_path: &Path) -> io::Result<()> {
     unsupported()
 }
 
-pub fn readlink(p: &Path) -> io::Result<PathBuf> {
-    let path = p.to_str().ok_or_else(|| {
+pub fn readlink(p: &CStr) -> io::Result<PathBuf> {
+    let path = p.to_str().map_err(|_| {
         io::Error::new(io::ErrorKind::InvalidInput, "path contains invalid UTF-8")
     })?;
 
@@ -666,12 +685,12 @@ pub fn readlink(p: &Path) -> io::Result<PathBuf> {
     Ok(PathBuf::from(path.as_str()))
 }
 
-pub fn symlink(original: &Path, link: &Path) -> io::Result<()> {
-    let original = original.to_str().ok_or_else(|| {
+pub fn symlink(original: &CStr, link: &CStr) -> io::Result<()> {
+    let original = original.to_str().map_err(|_| {
         io::Error::new(io::ErrorKind::InvalidInput, "original path contains invalid UTF-8")
     })?;
 
-    let link = link.to_str().ok_or_else(|| {
+    let link = link.to_str().map_err(|_| {
         io::Error::new(io::ErrorKind::InvalidInput, "link path contains invalid UTF-8")
     })?;
 
@@ -685,12 +704,12 @@ pub fn symlink(original: &Path, link: &Path) -> io::Result<()> {
         .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))
 }
 
-pub fn link(src: &Path, dst: &Path) -> io::Result<()> {
-    let src = src.to_str().ok_or_else(|| {
-        io::Error::new(io::ErrorKind::InvalidInput, "source path contains invalid UTF-8")
+pub fn link(src: &CStr, dst: &CStr) -> io::Result<()> {
+    let src = src.to_str().map_err(|_| {
+        io::Error::new(io::ErrorKind::InvalidInput, "src path contains invalid UTF-8")
     })?;
 
-    let dst = dst.to_str().ok_or_else(|| {
+    let dst = dst.to_str().map_err(|_| {
         io::Error::new(io::ErrorKind::InvalidInput, "destination path contains invalid UTF-8")
     })?;
 
@@ -704,8 +723,8 @@ pub fn link(src: &Path, dst: &Path) -> io::Result<()> {
         .map_err(|error| io::Error::new(error_code_to_error_kind(error.code), error.reason))
 }
 
-pub fn stat(p: &Path) -> io::Result<FileAttr> {
-    let path = p.to_str().ok_or_else(|| {
+pub fn stat(p: &CStr) -> io::Result<FileAttr> {
+    let path = p.to_str().map_err(|_| {
         io::Error::new(io::ErrorKind::InvalidInput, "path contains invalid UTF-8")
     })?;
 
@@ -718,8 +737,8 @@ pub fn stat(p: &Path) -> io::Result<FileAttr> {
     Ok(FileAttr(attr))
 }
 
-pub fn lstat(p: &Path) -> io::Result<FileAttr> {
-    let path = p.to_str().ok_or_else(|| {
+pub fn lstat(p: &CStr) -> io::Result<FileAttr> {
+    let path = p.to_str().map_err(|_| {
         io::Error::new(io::ErrorKind::InvalidInput, "path contains invalid UTF-8")
     })?;
 
@@ -732,7 +751,7 @@ pub fn lstat(p: &Path) -> io::Result<FileAttr> {
     Ok(FileAttr(attr))
 }
 
-pub fn canonicalize(_p: &Path) -> io::Result<PathBuf> {
+pub fn canonicalize(_p: &CStr) -> io::Result<PathBuf> {
     unsupported()
 }
 
@@ -753,5 +772,9 @@ pub fn lchown(_path: &Path, _uid: u32, _gid: u32) -> io::Result<()> {
 }
 
 pub fn chroot(_dir: &Path) -> io::Result<()> {
+    unsupported()
+}
+
+pub fn mkfifo(_path: &Path, _mode: u32) -> io::Result<()> {
     unsupported()
 }

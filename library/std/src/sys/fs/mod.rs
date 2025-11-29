@@ -9,7 +9,8 @@ cfg_select! {
     target_os = "nanvix" => {
         mod nanvix;
         use nanvix as imp;
-        pub use nanvix::*;
+        pub use nanvix::{chown, fchown, lchown, mkfifo, chroot};
+        use crate::sys::pal::common::small_c_string::run_path_with_cstr as with_native_path;
     }
     target_family = "unix" => {
         mod unix;
@@ -20,7 +21,7 @@ cfg_select! {
         pub(crate) use unix::debug_assert_fd_is_open;
         #[cfg(any(target_os = "linux", target_os = "android"))]
         pub(crate) use unix::CachedFileMetadata;
-        use crate::sys::common::small_c_string::run_path_with_cstr as with_native_path;
+        use crate::sys::pal::common::small_c_string::run_path_with_cstr as with_native_path;
     }
     target_os = "windows" => {
         mod windows;
@@ -123,17 +124,22 @@ pub fn set_permissions(path: &Path, perm: FilePermissions) -> io::Result<()> {
 pub fn set_permissions_nofollow(path: &Path, perm: crate::fs::Permissions) -> io::Result<()> {
     use crate::fs::OpenOptions;
 
-    let mut options = OpenOptions::new();
-
-    // ESP-IDF and Horizon do not support O_NOFOLLOW, so we skip setting it.
-    // Their filesystems do not have symbolic links, so no special handling is required.
-    #[cfg(not(any(target_os = "espidf", target_os = "horizon")))]
+    // ESP-IDF, Horizon, and Nanvix do not support O_NOFOLLOW, so we skip setting it.
+    // ESP-IDF and Horizon filesystems do not have symbolic links, so no special handling is required.
+    // Nanvix does not currently implement O_NOFOLLOW flag.
+    #[cfg(not(any(target_os = "espidf", target_os = "horizon", target_os = "nanvix")))]
     {
         use crate::os::unix::fs::OpenOptionsExt;
+        let mut options = OpenOptions::new();
         options.custom_flags(libc::O_NOFOLLOW);
+        options.open(path)?.set_permissions(perm)
     }
 
-    options.open(path)?.set_permissions(perm)
+    #[cfg(any(target_os = "espidf", target_os = "horizon", target_os = "nanvix"))]
+    {
+        let options = OpenOptions::new();
+        options.open(path)?.set_permissions(perm)
+    }
 }
 
 #[cfg(not(unix))]

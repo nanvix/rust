@@ -429,3 +429,22 @@ impl From<OwnedFd> for process::ChildStderr {
         process::ChildStderr::from_inner(pipe)
     }
 }
+
+#[unstable(feature = "unix_send_signal", issue = "141975")]
+pub trait ChildExt: Sealed {
+    /// Sends a signal to a child process.
+    ///
+    /// # Errors
+    ///
+    /// This function will return an error if the signal is invalid. The integer values associated
+    /// with signals are implementation-specific, so it's encouraged to use a crate that provides
+    /// posix bindings.
+    fn send_signal(&self, signal: i32) -> io::Result<()>;
+}
+
+#[unstable(feature = "unix_send_signal", issue = "141975")]
+impl ChildExt for process::Child {
+    fn send_signal(&self, signal: i32) -> io::Result<()> {
+        self.handle.send_signal(signal)
+    }
+}
