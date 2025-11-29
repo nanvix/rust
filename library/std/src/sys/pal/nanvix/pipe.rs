@@ -1,6 +1,6 @@
 use crate::io::{self, BorrowedCursor, IoSlice, IoSliceMut};
 use crate::sys_common::{FromInner, IntoInner};
-use crate::sys::fd::FileDesc;
+use crate::sys::pal::fd::FileDesc;
 use crate::sys::unsupported;
 use crate::os::fd::{AsFd, AsRawFd, BorrowedFd, FromRawFd, IntoRawFd, OwnedFd, RawFd};
 use crate::fmt;

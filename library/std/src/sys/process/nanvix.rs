@@ -5,7 +5,7 @@ use crate::path::Path;
 use crate::sys::fs::File;
 use crate::sys::pipe::AnonPipe;
 use crate::sys::unsupported;
-use crate::sys_common::process::{CommandEnv, CommandEnvs};
+use crate::sys::process::env::{CommandEnv, CommandEnvs};
 use crate::{fmt, io};
 
 use syscall::sysapi::sys_types::pid_t;
@@ -147,6 +147,7 @@ impl Command {
    pub fn exec(&mut self, _default: Stdio) -> io::Error {
         unsupported().expect("this is not supported")
     }
+    #[allow(dead_code)]
     pub fn output(&mut self) -> io::Result<(ExitStatus, Vec<u8>, Vec<u8>)> {
         unsupported()
     }
@@ -330,6 +331,10 @@ impl Process {
     }
 
     pub fn try_wait(&mut self) -> io::Result<Option<ExitStatus>> {
+        self.0
+    }
+
+    pub fn send_signal(&self, _signal: i32) -> io::Result<()> {
         self.0
     }
 }

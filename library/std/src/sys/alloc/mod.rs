@@ -69,6 +69,9 @@ unsafe fn realloc_fallback(
 }
 
 cfg_select! {
+    target_os = "nanvix" => {
+        mod nanvix;
+    }
     any(
         target_family = "unix",
         target_os = "wasi",
@@ -76,9 +79,6 @@ cfg_select! {
         target_os = "trusty",
     ) => {
         mod unix;
-    }
-    target_os = "nanvix" => {
-        mod nanvix;
     }
     target_os = "windows" => {
         mod windows;

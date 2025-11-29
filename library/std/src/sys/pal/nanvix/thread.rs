@@ -21,7 +21,7 @@ pub const DEFAULT_MIN_STACK_SIZE: usize = 64 * 1024;
 
 impl Thread {
     // unsafe: see thread::Builder::spawn_unchecked for safety requirements
-    pub unsafe fn new(_stack: usize, p: Box<dyn FnOnce()>) -> io::Result<Thread> {
+    pub unsafe fn new(_stack: usize, _name: Option<&str>, p: Box<dyn FnOnce()>) -> io::Result<Thread> {
         ::syscall::syslog::trace!("Thread::new()");
         let p = Box::into_raw(Box::new(p));
 

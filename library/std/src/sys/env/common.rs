@@ -1,11 +1,13 @@
 use crate::ffi::OsString;
 use crate::{fmt, vec};
 
+#[allow(dead_code)]
 pub struct Env {
     iter: vec::IntoIter<(OsString, OsString)>,
 }
 
 impl Env {
+    #[allow(dead_code)]
     pub(super) fn new(env: Vec<(OsString, OsString)>) -> Self {
         Env { iter: env.into_iter() }
     }
