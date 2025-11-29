@@ -1,3 +1,8 @@
+// Copyright(c) The Maintainers of Nanvix.
+// Licensed under the MIT License.
+
+pub use crate::sys::pal::nanvix::os::{Env, env, getenv, setenv, unsetenv};
+
 pub mod os {
     pub const FAMILY: &str = "";
     pub const OS: &str = "";

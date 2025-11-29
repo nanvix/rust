@@ -21,7 +21,7 @@ libc = { version = "0.2", default-features = false }
 alloc = { path = "../alloc" }
 
 [target.'cfg(target_os = "nanvix")'.dependencies]
-syscall = { git = "https://github.com/nanvix/nanvix", rev = "10bac7735b5c34f0ff6f6cb5925b1e271bbba45c", package = "syscall", default-features = false, features = [
+syscall = { git = "https://github.com/nanvix/nanvix", rev = "bda393b6be0e771c1223e08c7a096b54a8d8e6d2", package = "syscall", default-features = false, features = [
     "syscall",
     "rustc-dep-of-std",
 ] }
@@ -29,4 +29,3 @@ syscall = { git = "https://github.com/nanvix/nanvix", rev = "10bac7735b5c34f0ff6
 [lints.rust.unexpected_cfgs]
 level = "warn"
 check-cfg = ['cfg(bootstrap)', 'cfg(target_os, values("nanvix"))']
-

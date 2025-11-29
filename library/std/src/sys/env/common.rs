@@ -1,11 +1,13 @@
 use crate::ffi::OsString;
 use crate::{fmt, vec};
 
+#[allow(dead_code)]
 pub struct Env {
     iter: vec::IntoIter<(OsString, OsString)>,
 }
 
 // FIXME(https://github.com/rust-lang/rust/issues/114583): Remove this when <OsStr as Debug>::fmt matches <str as Debug>::fmt.
+#[allow(dead_code)]
 pub struct EnvStrDebug<'a> {
     slice: &'a [(OsString, OsString)],
 }
@@ -19,10 +21,12 @@ impl fmt::Debug for EnvStrDebug<'_> {
 }
 
 impl Env {
+    #[allow(dead_code)]
     pub(super) fn new(env: Vec<(OsString, OsString)>) -> Self {
         Env { iter: env.into_iter() }
     }
 
+    #[allow(dead_code)]
     pub fn str_debug(&self) -> impl fmt::Debug + '_ {
         EnvStrDebug { slice: self.iter.as_slice() }
     }

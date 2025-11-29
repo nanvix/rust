@@ -25,8 +25,6 @@ pub fn decode_error_kind(_code: i32) -> crate::io::ErrorKind {
 }
 
 pub fn abort_internal() -> ! {
-    // Try to exit cleanly through the Nanvix kernel first
-    let _ = ::sys::kcall::pm::exit(1);
-    // If that fails, force an abort
+    // Force an abort.
     core::intrinsics::abort();
 }
