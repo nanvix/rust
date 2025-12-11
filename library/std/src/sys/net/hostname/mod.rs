@@ -1,5 +1,5 @@
 cfg_select! {
-    all(target_family = "unix", not(target_os = "espidf")) => {
+    all(target_family = "unix", not(target_os = "espidf"), not(target_os = "nanvix")) => {
         mod unix;
         pub use unix::hostname;
     }

@@ -2,6 +2,7 @@ pub use crate::ffi::OsString as EnvKey;
 use crate::ffi::{OsStr, OsString};
 use crate::num::NonZero;
 use crate::path::Path;
+use crate::process::StdioPipes;
 use crate::sys::fs::File;
 use crate::sys::pipe::AnonPipe;
 use crate::sys::unsupported;
@@ -31,14 +32,6 @@ pub struct Command {
     stdout: Option<Stdio>,
     stderr: Option<Stdio>,
     pgroup: Option<pid_t>,
-}
-
-// passed back to std::process with the pipes connected to the child, if any
-// were requested
-pub struct StdioPipes {
-    pub stdin: Option<AnonPipe>,
-    pub stdout: Option<AnonPipe>,
-    pub stderr: Option<AnonPipe>,
 }
 
 #[derive(Debug)]
