@@ -755,6 +755,14 @@ pub fn canonicalize(_p: &CStr) -> io::Result<PathBuf> {
     unsupported()
 }
 
+pub fn set_times(_p: &CStr, _times: FileTimes) -> io::Result<()> {
+    unsupported()
+}
+
+pub fn set_times_nofollow(_p: &CStr, _times: FileTimes) -> io::Result<()> {
+    unsupported()
+}
+
 pub fn copy(_from: &Path, _to: &Path) -> io::Result<u64> {
     unsupported()
 }

@@ -380,6 +380,10 @@ impl<'a> TryFrom<(&'a str, u16)> for LookupHost {
     }
 }
 
+pub fn lookup_host(_host: &str, _port: u16) -> io::Result<LookupHost> {
+    unsupported()
+}
+
 
 #[derive(Debug)]
 pub struct Socket(FileDesc);
