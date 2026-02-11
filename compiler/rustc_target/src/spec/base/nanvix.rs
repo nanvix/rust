@@ -1,4 +1,4 @@
-use crate::spec::{Cc, LinkerFlavor, Lld, RelocModel, StackProbeType, TargetOptions, cvs};
+use crate::spec::{Cc, LinkerFlavor, Lld, Os, RelocModel, StackProbeType, TargetOptions, cvs};
 
 pub(crate) fn opts() -> TargetOptions {
     let pre_link_args = TargetOptions::link_args(
@@ -7,7 +7,7 @@ pub(crate) fn opts() -> TargetOptions {
     );
 
     TargetOptions {
-        os: "nanvix".into(),
+        os: Os::Nanvix,
         exe_suffix: ".elf".into(),
         families: cvs!["unix"],
         linker_flavor: LinkerFlavor::Gnu(Cc::Yes, Lld::No),

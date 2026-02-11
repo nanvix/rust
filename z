@@ -83,7 +83,7 @@ readonly Z_PROJECT_REQUIRED_PACKAGES=("build-essential" "wget" "gzip" "tar")
 #===================================================================================================
 
 # Change ID must match the last entry of`CONFIG_CHANGE_HISTORY in `src/bootstrap/src/utils/change_tracker.rs`.
-readonly CHANGE_ID=147888
+readonly CHANGE_ID=148795
 
 # WASI SDK.
 readonly WASI_OS="linux"

@@ -1972,6 +1972,7 @@ crate::target_spec_enum! {
         MacOs = "macos",
         Managarm = "managarm",
         Motor = "motor",
+        Nanvix = "nanvix",
         NetBsd = "netbsd",
         None = "none",
         Nto = "nto",

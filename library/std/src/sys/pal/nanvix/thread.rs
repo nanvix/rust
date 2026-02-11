@@ -1,12 +1,12 @@
 #![allow(fuzzy_provenance_casts)]
 
-use ::syscall::sysapi::ffi::c_void;
 use ::syscall::sysapi::sys_types::pthread_t;
 
 use crate::ffi::CStr;
 use crate::io;
 use crate::num::NonZero;
 use crate::sys::error_code_to_error_kind;
+use crate::thread::ThreadInit;
 use crate::time::Duration;
 
 pub struct Thread {
@@ -21,9 +21,9 @@ pub const DEFAULT_MIN_STACK_SIZE: usize = 64 * 1024;
 
 impl Thread {
     // unsafe: see thread::Builder::spawn_unchecked for safety requirements
-    pub unsafe fn new(_stack: usize, _name: Option<&str>, p: Box<dyn FnOnce()>) -> io::Result<Thread> {
+    pub unsafe fn new(_stack: usize, init: Box<ThreadInit>) -> io::Result<Thread> {
         ::syscall::syslog::trace!("Thread::new()");
-        let p = Box::into_raw(Box::new(p));
+        let p = Box::into_raw(init);
 
         let native: pthread_t =
             ::syscall::pthread::pthread_create(thread_start, p as *mut _ as usize).map_err(
@@ -36,10 +36,12 @@ impl Thread {
         return Ok(Thread { id: native });
 
         extern "C" fn thread_start(arg: usize) -> usize {
-            let main: *mut c_void = arg as *mut c_void;
             unsafe {
-                // Finally, let's run some code.
-                Box::from_raw(main as *mut Box<dyn FnOnce()>)();
+                let init = Box::from_raw(
+                    core::ptr::with_exposed_provenance_mut::<ThreadInit>(arg),
+                );
+                let rust_start = init.init();
+                rust_start();
             }
             0
         }
